@@ -2,3 +2,4 @@
 .venv
 *.db
 .pytest_cache
+.vscode
