@@ -33,8 +33,10 @@ def test_user_session_info(init_client):
     init_client.post("/users/create", json={"username":"john", "password":"12345678"})
     resp = init_client.post("/users/authenticate", json={"username":"john","password":"12345678"})
 
-    sk = resp.json()["resp"]
-    resp = init_client.post("/users/authenticate", json={"username":"john","session":sk,"command":"check"})
-    assert response.json()["resp"] == True, "john's session should work."
+    sk = resp.json()["session_ck"]
+    resp = init_client.post("/users/session_validate", json={"username":"john","session":sk})
+    print(resp.json())
+    print(sk)
+    assert resp.json()["resp"] == True, "john's session should work."
 
     

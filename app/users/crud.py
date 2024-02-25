@@ -14,8 +14,8 @@ def create_user(user: fmodels.SaltedUser, session: Session):
     return False
 
 
-# Retrieves a user. Returns either a user 
-def get_user_data(username: str, session: Session) -> fmodels.SaltedUser | None:
+# Retrieves a user. Returns either a user or none in case of non-existent user.
+def get_user_data(username: str, session: Session) -> models.User | None:
     if session:
         user = session.query(models.User).filter_by(username=username).first()
         if user:

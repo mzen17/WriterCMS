@@ -47,3 +47,22 @@ def init_client(init_app) -> TestClient:
     session.close()
 
     yield client
+
+
+# John set up in case needs user.
+@pytest.fixture
+def set_up_john(init_client):
+    init_client.post("/users/create", json={"username":"john", "password":"12345678"})
+    resp = init_client.post("/users/authenticate", json={"username":"john","password":"12345678"})
+
+    sk = resp.json()["session_ck"]
+    return {"username":"john","session":sk}
+
+
+# Bucket set up in case needs bucket
+@pytest.fixture
+def create_bucket(init_client, set_up_john):
+    set_up_john["bucket_name"] = "Test Bucket"
+    resp = init_client.post("/buckets/create", json=set_up_john)
+    del set_up_john['bucket_name']
+    return set_up_john

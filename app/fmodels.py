@@ -17,3 +17,22 @@ class SaltedUser(BaseModel):
 class UserRequest(BaseModel):
     username: str
     session: str
+
+
+class BucketRequest(BaseModel):
+    username: str
+    session: str
+    bucketid: int
+
+
+class BucketData(BaseModel):
+    username: str
+    session: str
+    bucket_name: str
+
+
+class PageData(BaseModel):
+    username: str
+    session: str
+    title: str
+    content: str
