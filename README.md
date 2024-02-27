@@ -9,7 +9,7 @@ This project's use case is for creating and managing any document that severely 
 This includes things such as
 
 - Notes
-- Web Novel pages
+- Book pages
 - Blog post pages
 
 What current software exist for such?
@@ -20,21 +20,17 @@ What current software exist for such?
 
 Why not use one of the above instead of creating?
 
-- Most do not think of each page as an individual document.
-- Peformance issues on those with individual pages.
-- Propertiary Software that requires either WiFi, or payment.
-
-Pre-defined limitations (Before Implementation)
-- Useless for anything that is "pageless" in a sense, where pages don't mean anything.
-
+- Most do not think of each page as an individual document, and lack features for pages (e.g, word count per page)
+- Peformance issues on those with individual pages. (not good for >300 pages)
+- Propertiary Software that may require payment and have a very crappy extension API.
 
 ## Current Status
-MVP state. Do not use in production unless in a private network with a firewall.
+MVP state. Do not use in production unless in a private network with a firewall for local users such as family, friends, etc, whom you have a trustful relationship.
 
 Very unsecure.
 
 - Createusers endpoint can be spammed to flood database and prevent normal users
-- Pages may be returned to people who don't own them by modifying front end.
+- Pages may be returned to people who don't own them by modifying front end (haven't confirmed, but this problem has appeareed in many of the APIs during testing).
 - Bucket and page endpoints can be flooded to waste storage
 
 Other problems
