@@ -41,6 +41,14 @@ Other problems
 - Documententation of code subpar. 
 - Code has many illogically structured APIs, and needs plenty of refactoring.
 
+## Usage Notes
+Create a venv, install reqs.txt.
+Then, create a sqlite3 database in the directory called app.db. and run the following command to bring up the webserver:
+```uvicorn app.main:app --host 0.0.0.0```
+Then, navigate to the URL. It does not have a functional GUI to create users, so go to the URL/docs, and use the "Try It" button in the FastAPI docs.
+
+The app is now ready, but do note that to delete pages, buckets, or users, you must use SQL and execute it on the app.db.
+
 ## Toolchain and framework
 All new projects must have their toolchain and framework defined before the project starts.
 
