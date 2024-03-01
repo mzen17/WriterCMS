@@ -4,4 +4,6 @@ jinja2
 sqlalchemy
 bcrypt
 pytest
+psycopg2-binary
 httpx
+python-dotenv
