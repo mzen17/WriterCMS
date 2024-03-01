@@ -1,8 +1,12 @@
-from app import fmodels
+"""CRUD toolkit for users"""
+
 from sqlalchemy.orm import Session
+
+from app import fmodels
 import app.database.models as models
 
 def create_user(user: fmodels.SaltedUser, session: Session):
+    """Creates a user given a username, salt, and password(hashed)"""
     if session:
         if not session.query(models.User).filter_by(username=user.username).first():
             user = models.User(username=user.username, password=user.password, salt=user.salt,

@@ -1,3 +1,5 @@
+"""Main method for application. Routes that return HTML."""
+
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -10,38 +12,45 @@ import app.pages.router as pages
 from app.database.connector import engine
 from app.database import models
 
-
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-app.mount("/static", StaticFiles(directory="static"), name="static")
 
+# Static Mount
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
+
+# Routers for other modules
 app.include_router(users.router)
 app.include_router(buckets.router)
 app.include_router(pages.router)
 
-templates = Jinja2Templates(directory="templates")
 @app.get("/", response_class=HTMLResponse)
 async def main(request: Request):
+    """Main Home Page"""
     return templates.TemplateResponse("index.html",{"request": request})
 
 
 @app.get("/login", response_class=HTMLResponse)
-async def login(request: Request):
+async def login_view(request: Request):
+    """Login Page"""
     return templates.TemplateResponse("login.html",{"request": request})
 
 
 @app.get("/buckets", response_class=HTMLResponse)
-async def pages(request: Request):
+async def buckets_view(request: Request):
+    """Return bucket view"""
     return templates.TemplateResponse("buckets.html",{"request": request})
 
 
-@app.get("/bucket/{id}", response_class=HTMLResponse)
-async def pages(request: Request, id: int):
-    return templates.TemplateResponse("sbucket.html",{"request": request, "id":id})
+@app.get("/bucket/{bid}", response_class=HTMLResponse)
+async def sbucket_view(request: Request, bid: int):
+    """Return a page view for a single particular bucket"""
+    return templates.TemplateResponse("sbucket.html",{"request": request, "id":bid})
 
 
 @app.get("/bucket/{bid}/page/{pid}", response_class=HTMLResponse)
-async def pages(request: Request, bid: int, pid:int):
+async def pages_view(request: Request, bid: int, pid:int):
+    """Return a page view for a particular page"""
     return templates.TemplateResponse("page.html",{"request": request, "id":bid, "pid":pid})
 
