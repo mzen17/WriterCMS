@@ -13,7 +13,6 @@ if "dbtype" in os.environ and os.environ["dbtype"] == "postgres":
     url = os.environ["url"]
 
     SQLALCHEMY_DATABASE_URL = f"postgresql://{user}:{password}@{url}/{dbname}"
-    print(SQLALCHEMY_DATABASE_URL)
     print("Using PostgreSQL as backend")
 
     engine = create_engine(SQLALCHEMY_DATABASE_URL)
