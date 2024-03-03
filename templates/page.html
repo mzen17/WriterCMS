@@ -1,34 +1,46 @@
-{% extends "base.html" %}
+{% extends "twocolumn.html" %}
 
-{% block page %}
-<div style="margin:10px">
-    <div id="status_box">
-        <p id="status_text"></p>
-        <a href="/bucket/{{ id }}" style="display:block; margin-bottom:20px">Back to bucket</a>
-        
+{% block column2 %}
+    <div id="status_box">        
         <input type="text"  style="height:40px; width:600px; font-size:larger; padding:3px; margin-bottom:10px" id="pg_title"></textarea>
-        <textarea id="pg_content"></textarea>
-
     </div>
 
     <button onclick="save()">Save</button>
-    <script>
-        function get_bucket_id() {
-            return "{{ id }}"
-        }
-        function get_pg_id() {
-            return "{{ pid }}"
-        }
-    </script>
+{% endblock column2 %}
 
-    <script src="/static/tinymce/tinymce.min.js"></script>
-    <script type="text/javascript">
-        tinymce.init({
-        selector: '#pg_content'
-        });
-    </script>      
-    <script src="/static/cookie.js"></script>
-    <script src="/static/page.js"></script>    
-</div>
-{% endblock page %}
+{% block column1 %}
+<textarea id="pg_content"></textarea>
+{% endblock column1 %}
+
+{% block scripts %}
+
+
+<script>
+    function get_bucket_id() {
+        return "{{ id }}"
+    }
+    function get_pg_id() {
+        return "{{ pid }}"
+    }
+</script>
+
+
+<script src="/static/tinymce/tinymce.min.js"></script>
+<script type="text/javascript">
+    tinymce.init({
+        selector: '#pg_content',
+        height: 850,
+        width: 800,
+        branding: false,
+        promotion: false,
+        content_style: "p { margin: 0; }",
+        plugins: 'wordcount',
+//        toolbar: 'wordcount'
+    });
+</script>      
+<script src="/static/cookie.js"></script>
+<script src="/static/page.js"></script>    
+{% endblock scripts %}
+
+
 

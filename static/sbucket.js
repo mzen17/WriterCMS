@@ -38,7 +38,7 @@ async function update() {
         var div = document.getElementById('status_box');
 
         var note = document.createElement("h4")
-        note.innerText = "Your pages."
+        note.innerText = "This bucket's pages."
 
         div.appendChild(note)
 
@@ -54,9 +54,24 @@ async function update() {
         data = await response.json()
         console.log(data)
         if(data["pages"].length < 1) {
-        note.innerText = "You have no pages to display ."
+            note.innerText = "This bucket have no pages to display ."
 
         } else {
+
+            // Page sorter
+            function compare_title( a, b ) {
+                if ( a.title < b.title ){
+                  return -1;
+                }
+                if ( a.title > b.title ){
+                  return 1;
+                }
+                return 0;
+              }
+              
+              data["pages"].sort( compare_title );
+              
+
             var div = document.getElementById('status_box');
             var list = document.createElement('ul')
 
@@ -76,12 +91,6 @@ async function update() {
             div.appendChild(list)
             data["pages"].forEach(pop_link);
         }
-
-
-
-
-
-
 
     } else {
         window.location.href="/login"

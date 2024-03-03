@@ -46,11 +46,11 @@ async def buckets_view(request: Request):
 @app.get("/bucket/{bid}", response_class=HTMLResponse)
 async def sbucket_view(request: Request, bid: int):
     """Return a page view for a single particular bucket"""
-    return templates.TemplateResponse("sbucket.html",{"request": request, "id":bid})
+    return templates.TemplateResponse("sbucket.html",{"request": request, "id":bid, "back_url":"/buckets"})
 
 
 @app.get("/bucket/{bid}/page/{pid}", response_class=HTMLResponse)
 async def pages_view(request: Request, bid: int, pid:int):
     """Return a page view for a particular page"""
-    return templates.TemplateResponse("page.html",{"request": request, "id":bid, "pid":pid})
+    return templates.TemplateResponse("page.html",{"request": request, "id":bid, "pid":pid, "back_url":f"/bucket/{bid}"})
 

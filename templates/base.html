@@ -10,8 +10,19 @@
 
 <body>
 
+<navbar style="height:60px">
+    {% if back_url %}
+        <a href="{{ back_url }}" style="font-size:xx-large; text-decoration:none; display:inline-block; margin-right:20px">←</a>
+    {% endif %}
+    <p id="status_text" style="display:inline-block"></p>
+
+</navbar>
+
 {% block page %}
 {% endblock page %}
+
+{% block scripts %}
+{% endblock scripts %}
 
 </body>
 </html>

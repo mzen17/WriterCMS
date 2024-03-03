@@ -1,33 +1,34 @@
-{% extends "base.html" %}
+{% extends "twocolumn.html" %}
 
-{% block page %}
-<div style="margin:10px">
-    <div id="status_box">
-        <p id="status_text"></p>
-        <a href="/buckets">Back to buckets</a>
-        <h2 id="bk_title"></h2>
+{% block header %}
+<h2 id="bk_title"></h2>
+{% endblock header %}
 
-    </div>
-
-    <div>
-        <form id="pg_create">
-            <h3>Create Page</h3>
-            <label for="pg_title">Title</label>
-            <input id="pg_title" type="text"/>
-            <button type="submit">Create</button>
-        </form>
-        <p id="msg" style="color:red"></p>
-    </div>
-
-    <button>Delete Bucket</button>
-
-    <script>
-        function get_bucket_id() {
-            return "{{ id }}"
-        }
-    </script>
-    <script src="/static/cookie.js"></script>
-    <script src="/static/sbucket.js"></script>
+{% block column1 %}
+<div id="status_box">
 </div>
-{% endblock page %}
+{% endblock column1 %}
 
+{% block column2 %}
+<div>
+    <form id="pg_create">
+        <h3>Create Page</h3>
+        <label for="pg_title">Title</label>
+        <input id="pg_title" type="text"/>
+        <button type="submit">Create</button>
+    </form>
+    <p id="msg" style="color:red"></p>
+</div>
+
+<button>Delete Bucket</button>
+{% endblock column2 %}
+
+{% block scripts %}
+<script>
+    function get_bucket_id() {
+        return "{{ id }}"
+    }
+</script>
+<script src="/static/cookie.js"></script>
+<script src="/static/sbucket.js"></script>
+{% endblock scripts %}

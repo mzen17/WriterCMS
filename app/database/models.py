@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import Column, ForeignKey, Integer, String, TEXT
 from sqlalchemy.orm import relationship
 from app.database.connector import Base
 
@@ -30,7 +30,7 @@ class Page(Base):
 
     id  = Column(Integer, primary_key=True)
     title = Column(String, index=True)
-    description = Column(String, index=True)
+    description = Column(TEXT, index=False)
 
     owner_id = Column(Integer, ForeignKey("buckets.id"))
     owner = relationship("Bucket", back_populates="pages")

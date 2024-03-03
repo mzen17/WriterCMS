@@ -23,7 +23,7 @@ def get_pages(bucket_id: int, session: Session):
 def get_page(bucket_id: int, page_id: int, session: Session):
     if session:
         target_page = session.query(models.Page).filter_by(owner_id=bucket_id).filter_by(id=page_id).first()
-    return target_page
+        return target_page
 
 
 def update_page(data: fmodels.PageData, bucket_id: int, page_id: int, session: Session):

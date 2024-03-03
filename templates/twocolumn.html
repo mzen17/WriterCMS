@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block page %}
+
+
+
+<div class="container">
+    {% block header %}
+    {% endblock header %}
+
+    <div class="row">
+        <div class="column left">
+           {% block column1 %}
+           {% endblock column1 %}
+
+        </div>
+        <div class="column right">
+            {% block column2 %}
+            {% endblock column2 %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .container {
+        margin:10px;
+    }
+
+    .column {
+        float: left;
+    }
+
+    .left {
+        margin-right:50px
+    }
+
+    .right {
+} 
+</style>
+{% endblock page %}

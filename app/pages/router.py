@@ -30,7 +30,7 @@ def pull_page(resp: fmodels.UserRequest, bid: str, pid: str, db: Session = Depen
 
 
 @router.post("/bucket/{bid}/update/{pid}")
-def update(resp: fmodels.PageData, bid: str, pid: str, db: Session = Depends(get_db)):
+def update(resp: fmodels.PageData, bid: int, pid: int, db: Session = Depends(get_db)):
     if functions.check_session(resp.username, resp.session, db):
        if functions.verify_bucket_ownership(resp.username, bid, db):
 

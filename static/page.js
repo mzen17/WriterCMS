@@ -35,8 +35,8 @@ async function update() {
 
         head = document.getElementById("pg_title")
         head.value = data["page"].title
-        
-        tinymce.activeEditor.setContent(data["page"].description)
+        var replacedStr = data["page"].description.replace(/\[\@\@\#%\]/g, "\"");
+        tinymce.activeEditor.setContent(replacedStr)
     } else {
         window.location.href="/login"
 
@@ -47,20 +47,24 @@ update()
 async function save() {
     head = document.getElementById("pg_title").value
     body = tinymce.activeEditor.getContent({format : 'raw'});
-
+    var replacedStr = body.replace(/"/g, '[@@#%]');
     send = {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: '{"username":"' + un + '","session":"'+ sk +'","title":"' + head + '","content":"'+body+'"}'
+        body: '{"username":"' + un + '","session":"'+ sk + '","title":"' + head + '","content":"' + replacedStr + '"}'
     }
-    console.log(send)
+
+    console.log(replacedStr.length)
+
     response = await fetch("/bucket/"+ bid + "/update/" + pid, send)
     data = await response.json()
 
     if (data["resp"] == true) {
-        console.log(body)
+        window.location.href=("/bucket/"+bid)
+    } else {
+        alert("An error occured. Please save your content somewhere else and try again later.")
     }
 
 
