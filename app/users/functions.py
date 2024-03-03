@@ -63,8 +63,6 @@ def verify_bucket_ownership(username: str, bucket_id: int, db: Session):
     owner = get_id(username, db)
     bucket = bucket_crud.get_bucket(bucket_id, db)
 
-    print(owner, bucket.id)
-
     if owner == bucket.owner_id:
         return True
     return False

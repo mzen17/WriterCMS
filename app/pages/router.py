@@ -10,7 +10,7 @@ router = APIRouter()
 
 
 @router.post("/bucket/{bid}/pages")
-def list_pages(resp: fmodels.UserRequest, bid: str, db: Session = Depends(get_db)):
+def list_pages(resp: fmodels.UserRequest, bid: int, db: Session = Depends(get_db)):
 
     if functions.check_session(resp.username, resp.session, db):
        if functions.verify_bucket_ownership(resp.username, bid, db):
@@ -21,7 +21,7 @@ def list_pages(resp: fmodels.UserRequest, bid: str, db: Session = Depends(get_db
 
 
 @router.post("/bucket/{bid}/get/{pid}")
-def pull_page(resp: fmodels.UserRequest, bid: str, pid: str, db: Session = Depends(get_db)):
+def pull_page(resp: fmodels.UserRequest, bid: int, pid: int, db: Session = Depends(get_db)):
     if functions.check_session(resp.username, resp.session, db):
        if functions.verify_bucket_ownership(resp.username, bid, db):
 
@@ -31,6 +31,13 @@ def pull_page(resp: fmodels.UserRequest, bid: str, pid: str, db: Session = Depen
 
 @router.post("/bucket/{bid}/update/{pid}")
 def update(resp: fmodels.PageData, bid: int, pid: int, db: Session = Depends(get_db)):
+    import sys
+
+    print(resp.content)
+
+    string_size_in_bytes = sys.getsizeof(resp.content)
+    print("Size of the string in bytes:", string_size_in_bytes)
+
     if functions.check_session(resp.username, resp.session, db):
        if functions.verify_bucket_ownership(resp.username, bid, db):
 
@@ -40,7 +47,7 @@ def update(resp: fmodels.PageData, bid: int, pid: int, db: Session = Depends(get
 
 
 @router.post("/bucket/{bid}/addpage")
-def create_page(resp: fmodels.PageData, bid: str, db: Session = Depends(get_db)):
+def create_page(resp: fmodels.PageData, bid: int, db: Session = Depends(get_db)):
     if functions.check_session(resp.username, resp.session, db):
        if functions.verify_bucket_ownership(resp.username, bid, db):
 
