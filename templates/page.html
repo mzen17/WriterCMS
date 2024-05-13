@@ -24,8 +24,8 @@
     }
 
     function back() {
-        c = confirm("You did not save your data. Do you want to save data?");
-        if (c) {
+        c = confirm("You did not save your data. Do you want to save your data?");
+        if (!c) {
             window.location.href = "/bucket/" + get_bucket_id()
     
         }
@@ -33,7 +33,7 @@
 </script>
 
 
-<script src="/static/tinymce/tinymce.min.js"></script>
+<script src="https://lib.starlightx.io/tinymce/tinymce.min.js"></script>
 <script type="text/javascript">
     tinymce.init({
         selector: '#pg_content',
