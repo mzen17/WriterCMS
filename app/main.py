@@ -1,5 +1,7 @@
 """Main method for application. Routes that return HTML."""
 
+import os
+
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -52,5 +54,5 @@ async def sbucket_view(request: Request, bid: int):
 @app.get("/bucket/{bid}/page/{pid}", response_class=HTMLResponse)
 async def pages_view(request: Request, bid: int, pid:int):
     """Return a page view for a particular page"""
-    return templates.TemplateResponse("page.html",{"request": request, "id":bid, "pid":pid, "back_url":f"/bucket/{bid}"})
+    return templates.TemplateResponse("page.html",{"request": request, "id":bid, "pid":pid, "tinymce_url":os.environ["tinymce_url"], "back_url":"/buckets"})
 
