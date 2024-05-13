@@ -3,6 +3,7 @@ box = document.getElementById("status_text")
 un = getCookie("username")
 sk = getCookie("session_ck")
 id = get_bucket_id()
+del_bid = -1
 
 back = function () {}
 
@@ -19,7 +20,7 @@ async function update() {
     response = await fetch("/users/session_validate", send)
     data = await response.json()
 
-    
+    let title = document.getElementById("buck_name")
     if(data["resp"] === true) {
         box.innerText = ("You are currently logged in as " + un)
 
@@ -33,10 +34,13 @@ async function update() {
 
         response = await fetch("/buckets/get", send)
         data = await response.json()
-        console.log(data);
 
-        head = document.getElementById("bk_title")
-        head.innerText = data["bucket"].name
+        if(!data["resp"]) {
+            alert("This is an invalid bucket. Redirecting back.")
+            window.location.href = "/buckets"
+        }
+
+        title.value = data["bucket"].name
 
         var div = document.getElementById('status_box');
 
@@ -67,9 +71,8 @@ async function update() {
             function pop_pg_link(pg) {
                 var item = document.createElement('li')
                 var link = document.createElement('a');
-                console.log(pg)
                 link.textContent = "P: " + pg.name;
-                link.href = '/bucket/'+id +"/page/" + pg.id;
+                link.href = '/bucket/' + id + "/page/" + pg.id;
 
                 link.style="display: inline-block;"
                 item.style="margin-bottom:5px;"
@@ -94,11 +97,12 @@ async function update() {
             data["buckets"].forEach(pop_bk_link);
 
         }
-        console.log("/bucket/"+data["bucket"].owner_id)
+        del_bid = data["bucket"].bucket_owner_id
+        console.log(del_bid)
 
         back = function () {
-            if(data["bucket"].bucket_owner_id) {
-                window.location.href="/bucket/" + data["bucket"].bucket_owner_id
+            if(del_bid) {
+                window.location.href="/bucket/" + del_bid
             }else {
                 window.location.href="/buckets"
             }
@@ -110,14 +114,8 @@ async function update() {
 }
 update()
 
-
-
 // Handle creation of page
-
-
-// Handle creation of form
 var form = document.getElementById("pg_create");
-
 async function submit(event) {
     event.preventDefault();
     pg_name = document.getElementById("pg_title").value
@@ -126,16 +124,18 @@ async function submit(event) {
       }
       
     if(pg_name !== "" && !isWhitespace(pg_name)) {
+        let data = {"username":un, "session":sk, "title":pg_name, "content":"","bucketid":id, "pageid":-1}
+
         send = {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: "{\"username\":\"" + un + "\", \"session\":\""+ sk +"\", \"title\":\""+pg_name+"\",\"content\":\"\"}"
+            body: JSON.stringify(data)
         }
 
 
-        response = await fetch("/bucket/"+id+"/addpage", send)
+        response = await fetch("/editor/pages/add", send)
         data = await response.json()
 
         if(data["resp"] == false) {
@@ -156,9 +156,9 @@ async function submit(event) {
 }
 form.addEventListener('submit', submit);
 
+
 // Bucket Creation
 var form2 = document.getElementById("bk_create");
-
 async function submit_cbucket(event) {
     event.preventDefault();
     bk_name = document.getElementById("bkf_title").value
@@ -167,15 +167,16 @@ async function submit_cbucket(event) {
       }
       
     if(bk_name !== "" && !isWhitespace(bk_name)) {
+        data = {"username":un, "session":sk, "bucket_name":bk_name, "bucket_owner_id":id, bucket_id:-1, visibility:false}
         send = {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: "{\"username\":\"" + un + "\", \"session\":\""+ sk +"\", \"bucket_name\":\""+bk_name+"\",\"bucket_id1\":\""+id+"\"}"
+            body: JSON.stringify(data)
         }
 
-        response = await fetch("/buckets/create", send)
+        response = await fetch("/editor/buckets/create", send)
         data = await response.json()
 
         if(data["resp"] == false) {
@@ -194,5 +195,52 @@ async function submit_cbucket(event) {
 
     }
 }
-
 form2.addEventListener('submit', submit_cbucket);
+
+// Bucket Update
+async function save() {
+    var bckt = document.getElementById('buck_name').value
+    var chkbox = document.getElementById('vis').checked
+
+    data = {"username":un, "session":sk, "bucket_name":bckt,"bucket_id":id, "visibility":chkbox}
+
+    send = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    }
+
+    response = await fetch("/editor/buckets/update", send)
+    data = await response.json()
+
+    if(data["resp"]) {
+        location.reload();
+    }else {
+        alert("Something bad happened.")
+    }
+}
+
+// Delete Bucket
+async function del() {
+    data = {"username":un, "session":sk, "bucketid":id}
+
+    send = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    }
+
+    response = await fetch("/editor/buckets/delete", send)
+    data = await response.json()
+
+    if(data["resp"]) {
+        back();
+    }else {
+        alert("Something went wrong. Ensure that Bucket has no children. It may also be a server error.")
+    }
+
+}

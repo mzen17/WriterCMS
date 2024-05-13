@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app import fmodels
-from app.users.functions import check_session, get_id
+from app.users.functions import check_session, get_id, verify_bucket_ownership
 from app.database.connector import get_db
 from app.buckets import crud
 
@@ -16,24 +16,46 @@ def list_buckets(user: fmodels.UserRequest, db: Session = Depends(get_db)):
     return {"resp":False}
 
 
-@router.post("/buckets/create")
+@router.post("/editor/buckets/create")
 def create_bucket(bucket: fmodels.BucketData, db: Session = Depends(get_db)):
     return {"resp":crud.create_bucket(bucket, db)}
 
 
 @router.post("/buckets/get")
 def get_buckets(bk: fmodels.BucketRequest, db: Session = Depends(get_db)):
+    tb = crud.get_bucket(bk.bucketid, db)
+
+    # If the bucket is public
+    if tb and tb.visibility:
+            buckets = crud.get_bucket_buckets(bk.bucketid, db)
+            pages = crud.get_bucket_pages(bk.bucketid, db)
+            return {"resp":True, "bucket":tb, "buckets":buckets,"pages":pages}
+    
+    # Otherwise run through and check
     if check_session(bk.username, bk.session, db):
-        tb = crud.get_bucket(bk.bucketid, db)
 
         # Check bucket ownership
-        if tb.owner_id == get_id(bk.username, db):
+        if tb and (tb.owner_id == get_id(bk.username, db)):
             buckets = crud.get_bucket_buckets(bk.bucketid, db)
             pages = crud.get_bucket_pages(bk.bucketid, db)
             return {"resp":True, "bucket":tb, "buckets":buckets,"pages":pages}
     return {"resp":False}
 
 
-@router.post("/buckets/delete")
-def delete_bucket(bucket: fmodels.BucketRequest,  db: Session = Depends(get_db)):
-    pass
+@router.post("/editor/buckets/update")
+def update_bucket(resp: fmodels.BucketData, db: Session = Depends(get_db)):
+
+    if check_session(resp.username, resp.session, db):
+       if verify_bucket_ownership(resp.username, resp.bucket_id, db):
+
+            return{"resp":True, "pages":crud.update_bucket(resp, db)}
+    return {"resp":False}
+
+
+@router.post("/editor/buckets/delete")
+def delete_bucket(resp: fmodels.BucketRequest,  db: Session = Depends(get_db)):
+    if check_session(resp.username, resp.session, db):
+       if verify_bucket_ownership(resp.username, resp.bucketid, db):
+
+        return {"resp": crud.faq_bucket(resp.bucketid, db)}
+    return {"resp": False}

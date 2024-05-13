@@ -30,13 +30,12 @@ MVP state. Do not use in production unless in a private network with a firewall 
 Very unsecure.
 
 - Createusers endpoint can be spammed to flood database and prevent normal users
-- Pages may be returned to people who don't own them by modifying front end (haven't confirmed, but this problem has appeareed in many of the APIs during testing).
+- Pages may be returned to people who don't own them by modifying JavaScript (haven't confirmed, but this problem has appeareed in many of the APIs during testing).
 - Bucket and page endpoints can be flooded to waste storage
 
 Other problems
 
 - GUI is not in any good shape.
-- DELETE buttons are not implemented, nor is the DELETE API functional.
 - Many skeletons in the API.
 - Documententation of code subpar. 
 - Code has many illogically structured APIs, and needs plenty of refactoring.

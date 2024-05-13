@@ -5,6 +5,13 @@
 {% endblock header %}
 
 {% block column1 %}
+<div>
+    <input style="height:40px; width:600px; font-size:larger; padding:3px; margin-bottom:10px; display:inline-block" id="buck_name"></input><br/>
+    <label for="vis">Public</label>
+    <input type="checkbox" id="vis" style="margin-bottom:10px"/><br/>
+    <button onclick="save()">Update Bucket</button>
+    <button onclick="del()">Delete Bucket</button>
+</div>
 <div id="status_box">
 </div>
 {% endblock column1 %}
@@ -26,8 +33,6 @@
 
     <p id="msg" style="color:red"></p>
 </div>
-
-<button>Delete Bucket</button>
 {% endblock column2 %}
 
 {% block scripts %}

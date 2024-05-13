@@ -6,6 +6,8 @@
     </div>
 
     <button onclick="save()">Save</button>
+    <button onclick="del()">Delete</button>
+
 {% endblock column2 %}
 
 {% block column1 %}
@@ -24,11 +26,7 @@
     }
 
     function back() {
-        c = confirm("You did not save your data. Do you want to save your data?");
-        if (!c) {
-            window.location.href = "/bucket/" + get_bucket_id()
-    
-        }
+        window.location.href = "/bucket/" + get_bucket_id()
     }
 </script>
 

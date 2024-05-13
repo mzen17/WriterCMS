@@ -10,8 +10,8 @@ def create_bucket(bk: fmodels.BucketData, session: Session):
         user = session.query(models.User).filter_by(username=bk.username).first()
         if user:
             bucket = models.Bucket(name=bk.bucket_name, owner_id=user.id)
-            if bk.bucket_id1:
-                bucket.bucket_owner_id = bk.bucket_id1
+            if bk.bucket_owner_id:
+                bucket.bucket_owner_id = bk.bucket_owner_id
             
             session.add(bucket)
             session.commit()
@@ -21,18 +21,27 @@ def create_bucket(bk: fmodels.BucketData, session: Session):
     return False
 
 
-# Retrieves a user. Returns either a user or none in case of non-existent user.
-def get_buckets(username: str, session: Session) -> Optional[List[models.Bucket]]:
+def update_bucket(bk: fmodels.BucketData, session: Session):
     if session:
-        user = session.query(models.User).filter_by(username=username).first()
-        if user:
-            buckets = session.query(models.Bucket).filter_by(owner_id=user.id).all()
-            return buckets
-    return None
+        target_bucket = session.query(models.Bucket).filter_by(id=bk.bucket_id).first()
+        if target_bucket:
+            target_bucket.name = bk.bucket_name
+            target_bucket.visibility = bk.visibility
+            session.commit()
+            return True
+    return False
 
 
-# Retrieves a user. Returns either a user or none in case of non-existent user.
+def get_buckets(username: str, session: Session) -> Optional[List[models.Bucket]]:
+    """Retrieves a list of buckets for a user."""
+    user = session.query(models.User).filter_by(username=username).first()
+    if user:
+        buckets = session.query(models.Bucket).filter_by(owner_id=user.id).all()
+        return buckets
+
+
 def get_prim_buckets(username: str, session: Session) -> Optional[List[models.Bucket]]:
+    """Retrieves a user. Gets a list of primitive buckets (no parent)."""
     if session:
         user = session.query(models.User).filter_by(username=username).first()
         if user:
@@ -42,16 +51,16 @@ def get_prim_buckets(username: str, session: Session) -> Optional[List[models.Bu
 
 
 def get_bucket(bucket_id: int, session: Session) -> models.Bucket:
-    if session:
-        bucket = session.query(models.Bucket).filter_by(id=bucket_id).first()
-        return bucket
-    return None
+    bucket = session.query(models.Bucket).filter_by(id=bucket_id).first()
+    return bucket
+
 
 def get_bucket_buckets(bucket_id: int, session: Session) -> list[models.Bucket]:
     if session:
         buckets = session.query(models.Bucket).filter_by(bucket_owner_id=bucket_id).all()
         return buckets
     return []
+
 
 def get_bucket_pages(bucket_id: int, session: Session) -> list[dict[str, int]]:
     if session:
@@ -66,6 +75,19 @@ def get_bucket_pages(bucket_id: int, session: Session) -> list[dict[str, int]]:
         return page_summary_list
     return []
 
-# Faq a bucket up in the database
-def faq_bucket(bucket_id: int):
-    pass
+
+# Faq a bucket up in the database (delete)
+def faq_bucket(bucket_id: int, session: Session):
+
+    buckets = get_bucket_buckets(bucket_id, session)
+    pages = get_bucket_pages(bucket_id, session)
+
+    if (len(buckets) + len(pages) == 0):
+        target_bucket = session.query(models.Bucket).filter_by(id=bucket_id)
+        if target_bucket:
+            target_bucket.delete()
+            session.commit()
+
+            return True
+    return False
+

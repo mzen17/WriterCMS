@@ -32,7 +32,17 @@ class BucketData(BaseModel):
     username: str
     session: str
     bucket_name: str
-    bucket_id1: Optional[int] = None
+    bucket_id: int
+    visibility: bool
+    bucket_owner_id: Optional[int] = None
+
+
+class PageRequest(BaseModel):
+    """A request for a bucket. Has a bucketid included so that it can target a particular bucket"""
+    username: str
+    session: str
+    bucketid: int
+    pageid: int
 
 class PageData(BaseModel):
     """A template request for page details. Useful in creation"""
@@ -40,3 +50,5 @@ class PageData(BaseModel):
     session: str
     title: str
     content: str
+    bucketid: int
+    pageid: int

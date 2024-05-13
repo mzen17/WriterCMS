@@ -46,11 +46,6 @@ async function update() {
             data["buckets"].forEach(pop_link);
         }
 
-
-
-
-
-
     } else {
         window.location.href="/login"
 
@@ -65,12 +60,14 @@ async function submit(event) {
     event.preventDefault();
     bk_name = document.getElementById("bk_name").value
 
+    data = {"username":un, "session":sk, "bucket_name":bk_name, "visibility":false, "bucket_id":-1}
+
     send = {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: "{\"username\":\"" + un + "\", \"session\":\""+ sk +"\", \"bucket_name\":\""+bk_name+"\"}"
+        body: JSON.stringify(data)
     }
 
 

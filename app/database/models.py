@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, TEXT
+from sqlalchemy import Column, ForeignKey, Integer, String, TEXT, Boolean
 from sqlalchemy.orm import relationship
 from app.database.connector import Base
 
@@ -21,6 +21,7 @@ class Bucket(Base):
     name = Column(String, index=True)
     owner_id = Column(Integer, ForeignKey("users.id"))
     bucket_owner_id = Column(Integer, ForeignKey("buckets.id"), nullable=True)
+    visibility = Column(Boolean, unique=False, default=True, nullable=False)
 
     owner = relationship("User", back_populates="buckets")
     parent_bucket = relationship("Bucket", remote_side=[id])
