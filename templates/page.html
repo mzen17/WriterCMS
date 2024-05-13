@@ -22,6 +22,14 @@
     function get_pg_id() {
         return "{{ pid }}"
     }
+
+    function back() {
+        c = confirm("You did not save your data. Do you want to save data?");
+        if (c) {
+            window.location.href = "/bucket/" + get_bucket_id()
+    
+        }
+    }
 </script>
 
 

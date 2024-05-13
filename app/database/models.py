@@ -20,9 +20,12 @@ class Bucket(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String, index=True)
     owner_id = Column(Integer, ForeignKey("users.id"))
+    bucket_owner_id = Column(Integer, ForeignKey("buckets.id"), nullable=True)
 
     owner = relationship("User", back_populates="buckets")
+    parent_bucket = relationship("Bucket", remote_side=[id])
     pages = relationship("Page", back_populates="owner")
+
 
 
 class Page(Base):

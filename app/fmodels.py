@@ -1,5 +1,6 @@
 """Models for POST requests. May also be used to type return dicts."""
 from pydantic import BaseModel
+from typing import Optional
 
 class Credentials(BaseModel):
     """Standard username password login request"""
@@ -26,13 +27,12 @@ class BucketRequest(BaseModel):
     session: str
     bucketid: int
 
-
 class BucketData(BaseModel):
     """A template request for bucket details. Useful in creation"""
     username: str
     session: str
     bucket_name: str
-
+    bucket_id1: Optional[int] = None
 
 class PageData(BaseModel):
     """A template request for page details. Useful in creation"""

@@ -4,6 +4,8 @@ un = getCookie("username")
 sk = getCookie("session_ck")
 id = get_bucket_id()
 
+back = function () {}
+
 send = {
     method: 'POST',
     headers: {
@@ -31,6 +33,7 @@ async function update() {
 
         response = await fetch("/buckets/get", send)
         data = await response.json()
+        console.log(data);
 
         head = document.getElementById("bk_title")
         head.innerText = data["bucket"].name
@@ -42,45 +45,43 @@ async function update() {
 
         div.appendChild(note)
 
-        send = {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: "{\"username\":\"" + un + "\", \"session\":\""+ sk + "\"}"
-        }
-
-        response = await fetch("/bucket/"+id +"/pages", send)
-        data = await response.json()
-        console.log(data)
-        if(data["pages"].length < 1) {
-            note.innerText = "This bucket have no pages to display ."
-
+        if(data["pages"].length + data["buckets"].length < 1) {
+            note.innerText = "This bucket have no pages or buckets to display ."
         } else {
-
             // Page sorter
-            function compare_title( a, b ) {
-                if ( a.title < b.title ){
+            function compare_id( a, b ) {
+                if ( a.id < b.id ){
                   return -1;
                 }
-                if ( a.title > b.title ){
+                if ( a.id > b.id ){
                   return 1;
                 }
                 return 0;
               }
-              
-              data["pages"].sort( compare_title );
-              
+              data["pages"].sort( compare_id );
+              data["buckets"].sort( compare_id );
 
             var div = document.getElementById('status_box');
             var list = document.createElement('ul')
 
-            function pop_link(pg) {
+            function pop_pg_link(pg) {
+                var item = document.createElement('li')
+                var link = document.createElement('a');
+                console.log(pg)
+                link.textContent = "P: " + pg.name;
+                link.href = '/bucket/'+id +"/page/" + pg.id;
+
+                link.style="display: inline-block;"
+                item.style="margin-bottom:5px;"
+                item.appendChild(link);
+                list.appendChild(item)
+            }
+            function pop_bk_link(bk) {
                 var item = document.createElement('li')
                 var link = document.createElement('a');
 
-                link.textContent = pg.title;
-                link.href = '/bucket/'+id +"/page/" + pg.id;
+                link.textContent = "B: " + bk.name;
+                link.href = '/bucket/'+ bk.id;
 
                 link.style="display: inline-block;"
                 item.style="margin-bottom:5px;"
@@ -89,9 +90,19 @@ async function update() {
             }
 
             div.appendChild(list)
-            data["pages"].forEach(pop_link);
-        }
+            data["pages"].forEach(pop_pg_link);
+            data["buckets"].forEach(pop_bk_link);
 
+        }
+        console.log("/bucket/"+data["bucket"].owner_id)
+
+        back = function () {
+            if(data["bucket"].bucket_owner_id) {
+                window.location.href="/bucket/" + data["bucket"].bucket_owner_id
+            }else {
+                window.location.href="/buckets"
+            }
+        }
     } else {
         window.location.href="/login"
 
@@ -143,5 +154,45 @@ async function submit(event) {
 
     }
 }
-
 form.addEventListener('submit', submit);
+
+// Bucket Creation
+var form2 = document.getElementById("bk_create");
+
+async function submit_cbucket(event) {
+    event.preventDefault();
+    bk_name = document.getElementById("bkf_title").value
+    function isWhitespace(str) {
+        return /^\s*$/.test(str);
+      }
+      
+    if(bk_name !== "" && !isWhitespace(bk_name)) {
+        send = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: "{\"username\":\"" + un + "\", \"session\":\""+ sk +"\", \"bucket_name\":\""+bk_name+"\",\"bucket_id1\":\""+id+"\"}"
+        }
+
+        response = await fetch("/buckets/create", send)
+        data = await response.json()
+
+        if(data["resp"] == false) {
+            warn_msg = document.getElementById("msg");
+            warn_msg.innerText = "An error occurred. Please reload or relogin."
+        } else {
+
+            warn_msg = document.getElementById("msg");
+            warn_msg.innerText = "Creating..."
+
+            location.reload()
+        }
+    } else {
+        warn_msg = document.getElementById("msg");
+        warn_msg.innerText = "Must have title."
+
+    }
+}
+
+form2.addEventListener('submit', submit_cbucket);

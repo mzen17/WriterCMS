@@ -37,6 +37,7 @@ async function update() {
         head.value = data["page"].title
         var replacedStr = data["page"].description.replace(/\[\@\@\#%\]/g, "\"");
         tinymce.activeEditor.setContent(replacedStr)
+
     } else {
         window.location.href="/login"
 
@@ -66,6 +67,4 @@ async function save() {
     } else {
         alert("An error occured. Please save your content somewhere else and try again later.")
     }
-
-
 }
