@@ -88,9 +88,9 @@ async function update() {
         }
 
         div.appendChild(list)
-        data["buckets"].forEach(pop_bk_link);
-        data["pages"].forEach(pop_pg_link);
 
+        data["pages"].forEach(pop_pg_link);
+        data["buckets"].forEach(pop_bk_link);
     }
     del_bid = data["bucket"].bucket_owner_id
     console.log(del_bid)
