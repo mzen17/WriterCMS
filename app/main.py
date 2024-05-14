@@ -56,3 +56,25 @@ async def pages_view(request: Request, bid: int, pid:int):
     """Return a page view for a particular page"""
     return templates.TemplateResponse("page.html",{"request": request, "id":bid, "pid":pid, "tinymce_url":os.environ["tinymce_url"], "back_url":"/buckets"})
 
+# Public files
+@app.get("/web", response_class=HTMLResponse)
+async def global_home_view(request: Request):
+    """Home Page (lists users)"""
+    return templates.TemplateResponse("public_home.html",{"request": request})
+
+
+@app.get("/web/{username}", response_class=HTMLResponse)
+async def pub_buckets_view(request: Request, username: str):
+    """Modified Buckets Page (lists users)"""
+    return templates.TemplateResponse("public_buckets.html",{"request": request, "username":username})
+
+
+@app.get("/web/{username}/bucket/{bucketid}", response_class=HTMLResponse)
+async def pub_sbucket_view(request: Request, username: str, bucketid: int):
+    """Modified Single Bucket Page to show contents"""
+    return templates.TemplateResponse("public_bucket.html",{"request": request, "username":username, "bucketid":bucketid, "back_url":True})
+
+@app.get("/web/{username}/bucket/{bucketid}/page/{pageid}", response_class=HTMLResponse)
+async def pub_page_view(request: Request, username: str, bucketid: int, pageid: int):
+    """Modified Page view to show contents"""
+    return templates.TemplateResponse("public_page.html",{"request": request, "username":username, "bucketid":bucketid, "pageid":pageid, "back_url":True})

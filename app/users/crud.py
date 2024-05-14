@@ -38,3 +38,13 @@ def update_user(user: models.User, session: Session):
             session.commit()
             return True
     return False
+
+def retrieve_users(session: Session):
+    user_summary = []
+    users = session.query(models.User).all()
+    for user in users:
+        user_detail = {}
+        user_detail["name"] = user.username
+        user_detail["id"] = user.id
+        user_summary.append(user_detail)
+    return user_summary

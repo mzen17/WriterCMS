@@ -4,12 +4,16 @@
 <div style="margin:10px">
     <div style="margin-bottom:30px">
         <div id="status_box">
-            <h2>Users</h2>
+            <h2>Main buckets</h2>
         </div>
     </div>
-
     <script src="/static/cookie.js"></script>
     <script src="/static/guestlogin.js"></script>
-    <script src="/static/user_home.js"></script>
+    <script>
+        un = "{{ username }}"
+        sk = ""
+        linkpfx = "/web/{{ username }}/bucket/{{ bucketid }}"
+    </script>
+    <script src="/static/buckets.js"></script>
 </div>
 {% endblock page %}

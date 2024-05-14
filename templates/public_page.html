@@ -1,0 +1,31 @@
+{% extends "twocolumn.html" %}
+      
+{% block page %}
+<input type="text" spellcheck="true"  style="height:40px; width:600px; font-size:larger; padding:3px; margin-bottom:10px" id="pg_title" readonly />
+<div id="pg_content" spellcheck="true"></div>
+{% endblock page %}
+
+{% block scripts %}
+<script>
+    function get_bucket_id() {
+        return "{{ bucketid }}"
+    }
+    function get_pg_id() {
+        return "{{ pageid }}"
+    }
+
+    function back() {
+        window.location.href = "/web/{{ username }}/bucket/" + get_bucket_id()
+    }
+</script>
+
+<script src="/static/cookie.js"></script>
+<script src="/static/guestlogin.js"></script>
+<script src="/static/page.js"></script>
+<script type="text/javascript">
+    stick_text_to_normal_box()
+</script>      
+{% endblock scripts %}
+
+
+

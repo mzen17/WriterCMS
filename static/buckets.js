@@ -1,54 +1,51 @@
 box = document.getElementById("status_text")
 
-un = getCookie("username")
-sk = getCookie("session_ck")
-
-send = {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-    },
-    body: "{\"username\":\"" + un + "\", \"session\":\""+ sk +"\"}"
-}
-
 // Load page
 async function update() {
-    response = await fetch("/users/session_validate", send)
-    data = await response.json()
-
-    if(data["resp"] === true) {
+    if( typeof guest_mode !== 'undefined' && guest_mode ){
+        box.innerText = "You are on guest mode."
+    } else {
         box.innerText = ("You are currently logged in as " + un)
+    }
 
-        response = await fetch("/buckets/list", send)
-        data = await response.json()
+    data = {"username":un, "session":sk}
+    console.log(un + "  "+ sk)
+    send = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body:JSON.stringify(data)
+    }
 
-        if(data["buckets"].length < 1) {
-            box.innerText += "\n\nYou have no buckets to display ."
+    response = await fetch("/buckets/list", send)
+    data = await response.json()
+    console.log(data)
 
-        } else {
-            var div = document.getElementById('status_box');
-            var list = document.createElement('ul')
-
-            function pop_link(bk) {
-                var item = document.createElement('li')
-                var link = document.createElement('a');
-
-                link.textContent = bk.name;
-                link.href = '/bucket/'+bk.id;
-
-                link.style="display: inline-block;"
-                item.style="margin-bottom:5px;"
-                item.appendChild(link);
-                list.appendChild(item)
-            }
-
-            div.appendChild(list)
-            data["buckets"].forEach(pop_link);
-        }
+    if(data["buckets"].length < 1) {
+        box.innerText += "\n\nYou have no buckets to display ."
 
     } else {
-        window.location.href="/login"
+        var div = document.getElementById('status_box');
+        var list = document.createElement('ul')
 
+        function pop_link(bk) {
+            var item = document.createElement('li')
+            var link = document.createElement('a');
+
+            link.textContent = bk.name;
+
+            if(typeof linkpfx === 'undefined') {linkpfx="/bucket/"}
+            link.href = linkpfx + bk.id;
+
+            link.style="display: inline-block;"
+            item.style="margin-bottom:5px;"
+            item.appendChild(link);
+            list.appendChild(item)
+        }
+
+        div.appendChild(list)
+        data["buckets"].forEach(pop_link);
     }
 }
 update()
@@ -71,7 +68,7 @@ async function submit(event) {
     }
 
 
-    response = await fetch("/buckets/create", send)
+    response = await fetch("/editor/buckets/create", send)
     data = await response.json()
 
     if(data["resp"] == false) {

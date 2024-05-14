@@ -15,8 +15,6 @@
 {% endblock column1 %}
 
 {% block scripts %}
-
-
 <script>
     function get_bucket_id() {
         return "{{ id }}"
@@ -30,8 +28,11 @@
     }
 </script>
 
-
 <script src="{{ tinymce_url }}"></script>
+<script src="/static/cookie.js"></script>
+<script src="/static/forcelogin.js"></script>
+<script src="/static/page.js"></script>
+
 <script type="text/javascript">
     tinymce.init({
         selector: '#pg_content',
@@ -41,11 +42,12 @@
         promotion: false,
         content_style: "p { margin: 0; }",
         plugins: 'wordcount',
-//        toolbar: 'wordcount'
-    });
+        setup: function (editor) {
+            editor.on('init', function () {
+                update();
+            })
+        }});
 </script>      
-<script src="/static/cookie.js"></script>
-<script src="/static/page.js"></script>    
 {% endblock scripts %}
 
 

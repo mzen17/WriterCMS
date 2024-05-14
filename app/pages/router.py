@@ -14,8 +14,10 @@ def list_pages(resp: fmodels.PageRequest, db: Session = Depends(get_db)):
 
     if functions.check_session(resp.username, resp.session, db):
        if functions.verify_bucket_ownership(resp.username, resp.bucketid, db):
-
             return{"resp":True, "pages":crud.get_pages(resp.bucketid, db)}
+    
+    elif functions.verify_bucket_view_access(resp.bucketid, db):
+        return{"resp":True, "pages":crud.get_pages(resp.bucketid, db)}
 
     return {"resp":False}
 
@@ -23,9 +25,11 @@ def list_pages(resp: fmodels.PageRequest, db: Session = Depends(get_db)):
 @router.post("/pages/get")
 def pull_page(resp: fmodels.PageRequest, db: Session = Depends(get_db)):
     if functions.check_session(resp.username, resp.session, db):
-       if functions.verify_bucket_view_access(resp.username, resp.bucketid, db):
-
+       if functions.verify_bucket_ownership(resp.username, resp.bucketid, db):
             return {"resp":True,"page": crud.get_page(resp.bucketid, resp.pageid, db)}
+
+    elif functions.verify_bucket_view_access(resp.bucketid, db):
+        return {"resp":True,"page": crud.get_page(resp.bucketid, resp.pageid, db)}
     return {"resp":False}
 
 

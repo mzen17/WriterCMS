@@ -8,18 +8,19 @@ from app.buckets import crud
 
 router = APIRouter()
 
-
+# Public API
 @router.post("/buckets/list")
 def list_buckets(user: fmodels.UserRequest, db: Session = Depends(get_db)):
     if check_session(user.username, user.session, db):
         return {"resp":True, "buckets":crud.get_prim_buckets(user.username, db)}
-    return {"resp":False}
-
-
-@router.post("/editor/buckets/create")
-def create_bucket(bucket: fmodels.BucketData, db: Session = Depends(get_db)):
-    return {"resp":crud.create_bucket(bucket, db)}
-
+    else:
+        buckets = []
+        bucket_list = crud.get_prim_buckets(user.username, db)
+        if bucket_list:
+            for bucket in bucket_list:
+                if bucket.visibility:
+                    buckets.append(bucket)
+        return {"resp":True, "buckets":buckets}
 
 @router.post("/buckets/get")
 def get_buckets(bk: fmodels.BucketRequest, db: Session = Depends(get_db)):
@@ -40,6 +41,11 @@ def get_buckets(bk: fmodels.BucketRequest, db: Session = Depends(get_db)):
             pages = crud.get_bucket_pages(bk.bucketid, db)
             return {"resp":True, "bucket":tb, "buckets":buckets,"pages":pages}
     return {"resp":False}
+
+# Editor-only commands
+@router.post("/editor/buckets/create")
+def create_bucket(bucket: fmodels.BucketData, db: Session = Depends(get_db)):
+    return {"resp":crud.create_bucket(bucket, db)}
 
 
 @router.post("/editor/buckets/update")

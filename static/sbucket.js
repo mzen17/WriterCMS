@@ -1,115 +1,108 @@
 box = document.getElementById("status_text")
-
-un = getCookie("username")
-sk = getCookie("session_ck")
 id = get_bucket_id()
+
+//un = getCookie("username")
+//sk = getCookie("session_ck")
+
 del_bid = -1
 
 back = function () {}
 
-send = {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-    },
-    body: "{\"username\":\"" + un + "\", \"session\":\""+ sk +"\"}"
-}
-
 // Load page
 async function update() {
-    response = await fetch("/users/session_validate", send)
+    let title = document.getElementById("buck_name")
+    box.innerText = ("You are currently logged in as " + un)
+
+    send = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: "{\"username\":\"" + un + "\", \"session\":\""+ sk +"\",\"bucketid\":\"" + id + "\"}"
+    }
+
+    response = await fetch("/buckets/get", send)
     data = await response.json()
 
-    let title = document.getElementById("buck_name")
-    if(data["resp"] === true) {
-        box.innerText = ("You are currently logged in as " + un)
+    if(!data["resp"]) {
+        alert("This is an invalid bucket. Redirecting back.")
+        window.location.href = "/buckets"
+    }
 
-        send = {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: "{\"username\":\"" + un + "\", \"session\":\""+ sk +"\",\"bucketid\":\"" + id + "\"}"
-        }
+    title.value = data["bucket"].name
 
-        response = await fetch("/buckets/get", send)
-        data = await response.json()
+    var div = document.getElementById('status_box');
 
-        if(!data["resp"]) {
-            alert("This is an invalid bucket. Redirecting back.")
-            window.location.href = "/buckets"
-        }
+    var note = document.createElement("h4")
+    note.innerText = "This bucket's pages."
 
-        title.value = data["bucket"].name
+    div.appendChild(note)
+
+    if(data["pages"].length + data["buckets"].length < 1) {
+        note.innerText = "This bucket have no pages or buckets to display ."
+    } else {
+        // Page sorter
+        function compare_id( a, b ) {
+            if ( a.id < b.id ){
+                return -1;
+            }
+            if ( a.id > b.id ){
+                return 1;
+            }
+            return 0;
+            }
+            data["pages"].sort( compare_id );
+            data["buckets"].sort( compare_id );
 
         var div = document.getElementById('status_box');
+        var list = document.createElement('ul')
 
-        var note = document.createElement("h4")
-        note.innerText = "This bucket's pages."
+        function pop_pg_link(pg) {
+            var item = document.createElement('li')
+            var link = document.createElement('a');
+            link.textContent = "P: " + pg.name;
 
-        div.appendChild(note)
+            tlink = "/bucket/"
+            if(typeof linkpfx !== 'undefined') {tlink = linkpfx}
+            link.href = tlink + id + "/page/" + pg.id;
 
-        if(data["pages"].length + data["buckets"].length < 1) {
-            note.innerText = "This bucket have no pages or buckets to display ."
-        } else {
-            // Page sorter
-            function compare_id( a, b ) {
-                if ( a.id < b.id ){
-                  return -1;
-                }
-                if ( a.id > b.id ){
-                  return 1;
-                }
-                return 0;
-              }
-              data["pages"].sort( compare_id );
-              data["buckets"].sort( compare_id );
-
-            var div = document.getElementById('status_box');
-            var list = document.createElement('ul')
-
-            function pop_pg_link(pg) {
-                var item = document.createElement('li')
-                var link = document.createElement('a');
-                link.textContent = "P: " + pg.name;
-                link.href = '/bucket/' + id + "/page/" + pg.id;
-
-                link.style="display: inline-block;"
-                item.style="margin-bottom:5px;"
-                item.appendChild(link);
-                list.appendChild(item)
-            }
-            function pop_bk_link(bk) {
-                var item = document.createElement('li')
-                var link = document.createElement('a');
-
-                link.textContent = "B: " + bk.name;
-                link.href = '/bucket/'+ bk.id;
-
-                link.style="display: inline-block;"
-                item.style="margin-bottom:5px;"
-                item.appendChild(link);
-                list.appendChild(item)
-            }
-
-            div.appendChild(list)
-            data["pages"].forEach(pop_pg_link);
-            data["buckets"].forEach(pop_bk_link);
-
+            link.style="display: inline-block;"
+            item.style="margin-bottom:5px;"
+            item.appendChild(link);
+            list.appendChild(item)
         }
-        del_bid = data["bucket"].bucket_owner_id
-        console.log(del_bid)
+        function pop_bk_link(bk) {
+            var item = document.createElement('li')
+            var link = document.createElement('a');
 
-        back = function () {
-            if(del_bid) {
-                window.location.href="/bucket/" + del_bid
-            }else {
-                window.location.href="/buckets"
-            }
+            link.textContent = "B: " + bk.name;
+
+            tlink = "/bucket/"
+            if(typeof linkpfx !== 'undefined') {tlink = linkpfx}
+            link.href = tlink + bk.id;
+
+            link.style="display: inline-block;"
+            item.style="margin-bottom:5px;"
+            item.appendChild(link);
+            list.appendChild(item)
         }
-    } else {
-        window.location.href="/login"
 
+        div.appendChild(list)
+        data["buckets"].forEach(pop_bk_link);
+        data["pages"].forEach(pop_pg_link);
+
+    }
+    del_bid = data["bucket"].bucket_owner_id
+    console.log(del_bid)
+
+    back = function () {
+        if(del_bid) {
+            if(typeof linkpfx == 'undefined') {linkpfx="/bucket/"}
+            window.location.href= linkpfx + del_bid
+        }else {
+            if(typeof linkpfx == 'undefined') {linkpfx="/buckets/"}
+            window.location.href=linkpfx
+        }
     }
 }
 update()

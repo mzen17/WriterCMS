@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app import fmodels
 from app.users import functions
+import app.users.crud as crud
 
 from app.database.connector import get_db
 
@@ -29,3 +30,7 @@ def login(creds: fmodels.Credentials, db: Session = Depends(get_db)):
 def validate_session(creds: fmodels.UserRequest, db: Session = Depends(get_db)):
     return {"resp":functions.check_session(creds.username, creds.session, db)}
 
+
+@router.post("/users/list")
+def list_users(db: Session = Depends(get_db)):
+    return {"resp":crud.retrieve_users(db)}

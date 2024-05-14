@@ -69,15 +69,12 @@ def verify_bucket_ownership(username: str, bucket_id: int, db: Session):
     return False
 
 
-def verify_bucket_view_access(username: str, bucket_id: int, db: Session):
-    owner = get_id(username, db)
+def verify_bucket_view_access(bucket_id: int, db: Session):
     bucket = bucket_crud.get_bucket(bucket_id, db)
 
     if bucket:
         if bucket.visibility:
             return True
 
-        if owner == bucket.owner_id:
-            return True
     return False
 
