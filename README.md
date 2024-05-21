@@ -22,23 +22,21 @@ Why not use one of the above instead of creating?
 
 - Most do not think of each page as an individual document, and lack features for pages (e.g, word count per page)
 - Peformance issues on those with individual pages. (not good for >300 pages)
-- Propertiary Software that may require payment and have a very crappy extension API.
+- Closed-Source Software that may require payment and have a very undocumented extension API.
 
 ## Current Status
 MVP state. Do not use in production unless in a private network with a firewall for local users such as family, friends, etc, whom you have a trustful relationship.
 
-Very unsecure.
+Unsecure.
 
-- Createusers endpoint can be spammed to flood database and prevent normal users
-- Pages may be returned to people who don't own them by modifying JavaScript (haven't confirmed, but this problem has appeareed in many of the APIs during testing).
-- Bucket and page endpoints can be flooded to waste storage
+- Createusers endpoint can be spammed to flood database and prevent normal users (needs a rate limit)
+- Bucket and page endpoints can be flooded to waste storage (needs storage cap)
 
 Other problems
 
 - GUI is not in any good shape.
 - Many skeletons in the API.
 - Documententation of code subpar. 
-- Code has many illogically structured APIs, and needs plenty of refactoring.
 
 ## Usage Notes
 Create a venv, install reqs.txt. Create a .env file, and place tinymce url into it.
