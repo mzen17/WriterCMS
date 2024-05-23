@@ -4,7 +4,11 @@ import app.database.models as models
 
 def create_page(data: fmodels.PageData, bucket_id: int, session: Session):
     if session:
-        page = models.Page(title=data.title, description=data.content, owner_id=bucket_id)
+        # No order sets it at -1.
+        if not data.porder:
+            data.porder = -1
+        
+        page = models.Page(title=data.title, description=data.content, owner_id=bucket_id, public = data.visibility, porder = -1)
         session.add(page)
         session.commit()
         session.refresh(page)
@@ -32,6 +36,11 @@ def update_page(data: fmodels.PageData, bucket_id: int, page_id: int, session: S
         if target_page:
             target_page.title = data.title
             target_page.description = data.content
+            target_page.public = data.visibility
+
+            if data.porder:
+                target_page.porder = data.porder
+
             session.commit()
             return True
     return False

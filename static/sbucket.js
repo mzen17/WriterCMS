@@ -30,6 +30,10 @@ async function update() {
     }
 
     title.value = data["bucket"].name
+    vis = data["bucket"].visibility
+
+    chkbox = document.getElementById("vis")
+    chkbox.checked = vis
 
     var div = document.getElementById('status_box');
 
@@ -117,7 +121,16 @@ async function submit(event) {
       }
       
     if(pg_name !== "" && !isWhitespace(pg_name)) {
-        let data = {"username":un, "session":sk, "title":pg_name, "content":"","bucketid":id, "pageid":-1}
+        let data = {
+            "username":un, 
+            "session":sk, 
+            "title":pg_name, 
+            "content":"",
+            "bucketid":id, 
+            "pageid":-1,
+            "visibility":false,
+            "porder":-1
+        }
 
         send = {
             method: 'POST',

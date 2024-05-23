@@ -27,6 +27,7 @@ class BucketRequest(BaseModel):
     session: str
     bucketid: int
 
+
 class BucketData(BaseModel):
     """A template request for bucket details. Useful in creation"""
     username: str
@@ -52,3 +53,5 @@ class PageData(BaseModel):
     content: str
     bucketid: int
     pageid: int
+    visibility: bool
+    porder: Optional[int] = None

@@ -18,8 +18,18 @@ async function update() {
     response = await fetch("/pages/get", send)
     data = await response.json()
 
+    console.log(data)
+   
     head = document.getElementById("pg_title")
     head.value = data["page"].title
+
+    oV = document.getElementById("order")
+    oV.value = data["page"].porder
+
+    vis = document.getElementById("vis")
+    vis.checked = data["page"].public
+
+
     var replacedStr = data["page"].description.replace(/\[\@\@\#%\]/g, "\"");
     tinymce.activeEditor.setContent(replacedStr)
 
@@ -60,7 +70,22 @@ async function save() {
     body = tinymce.activeEditor.getContent({format : 'raw'});
     var replacedStr = body.replace(/"/g, '[@@#%]');
 
-    let data = {"username":un, "session":sk, "title":head, "content":replacedStr, "bucketid":bid, "pageid":pid}
+    visibility = document.getElementById("vis").checked
+    porder = document.getElementById("order").value
+    if (porder.replace(" ", "") === "") {
+        porder = -1
+    }
+
+    let data = {
+        "username":un, 
+        "session":sk, 
+        "title":head, 
+        "content":replacedStr, 
+        "bucketid":bid, 
+        "pageid":pid, 
+        "visibility":visibility, 
+        "porder": porder
+    }
 
     send = {
         method: 'POST',

@@ -35,6 +35,8 @@ class Page(Base):
     id  = Column(Integer, primary_key=True)
     title = Column(String, index=True)
     description = Column(TEXT, index=False)
+    porder = Column(Integer)
+    public = Column(Boolean)
 
     owner_id = Column(Integer, ForeignKey("buckets.id"))
     owner = relationship("Bucket", back_populates="pages")
