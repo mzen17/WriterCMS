@@ -17,20 +17,21 @@ def create_page(data: fmodels.PageData, bucket_id: int, session: Session):
 
 
 # Retrieves pages. Returns either a list of pages or none in case of non-existent user.
-def get_pages(bucket_id: int, session: Session):
+def get_pages(bucket_id: int, session: Session) -> list[models.Page]:
     if session:
         pages = session.query(models.Page).filter_by(owner_id = bucket_id).all()
         return pages
-    return None
+    return []
 
 
-def get_page(bucket_id: int, page_id: int, session: Session):
+def get_page(bucket_id: int, page_id: int, session: Session) -> models.Page | None:
     if session:
         target_page = session.query(models.Page).filter_by(owner_id=bucket_id).filter_by(id=page_id).first()
         return target_page
+    return None
 
 
-def update_page(data: fmodels.PageData, bucket_id: int, page_id: int, session: Session):
+def update_page(data: fmodels.PageData, bucket_id: int, page_id: int, session: Session) -> bool:
     if session:
         target_page = session.query(models.Page).filter_by(owner_id=bucket_id).filter_by(id=page_id).first()
         if target_page:
@@ -45,7 +46,7 @@ def update_page(data: fmodels.PageData, bucket_id: int, page_id: int, session: S
             return True
     return False
 
-def delete_page(data: fmodels.PageData, bucket_id: int, page_id: int, session: Session):
+def delete_page(data: fmodels.PageData, bucket_id: int, page_id: int, session: Session) -> bool:
     if session:
         target_page = session.query(models.Page).filter_by(owner_id=bucket_id).filter_by(id=page_id)
         if target_page:

@@ -71,6 +71,7 @@ def get_bucket_pages(bucket_id: int, session: Session) -> list[dict[str, int]]:
             page_summary = {}
             page_summary["name"] = page.title
             page_summary["id"] = page.id
+            page_summary["order"] = page.porder if page.porder is not None else -1
             page_summary_list.append(page_summary)
         return page_summary_list
     return []

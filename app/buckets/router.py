@@ -26,20 +26,23 @@ def list_buckets(user: fmodels.UserRequest, db: Session = Depends(get_db)):
 def get_buckets(bk: fmodels.BucketRequest, db: Session = Depends(get_db)):
     tb = crud.get_bucket(bk.bucketid, db)
 
+    buckets = crud.get_bucket_buckets(bk.bucketid, db)
+    pages = crud.get_bucket_pages(bk.bucketid, db)
+
+    pages.sort(key=lambda x: x["id"])
+    pages.sort(key=lambda x: x["order"])
+
     # If the bucket is public
     if tb and tb.visibility:
-            buckets = crud.get_bucket_buckets(bk.bucketid, db)
-            pages = crud.get_bucket_pages(bk.bucketid, db)
-            return {"resp":True, "bucket":tb, "buckets":buckets,"pages":pages}
-    
+        return {"resp":True, "bucket":tb, "buckets":buckets,"pages":pages}
+
     # Otherwise run through and check
     if check_session(bk.username, bk.session, db):
 
         # Check bucket ownership
         if tb and (tb.owner_id == get_id(bk.username, db)):
-            buckets = crud.get_bucket_buckets(bk.bucketid, db)
-            pages = crud.get_bucket_pages(bk.bucketid, db)
             return {"resp":True, "bucket":tb, "buckets":buckets,"pages":pages}
+
     return {"resp":False}
 
 # Editor-only commands

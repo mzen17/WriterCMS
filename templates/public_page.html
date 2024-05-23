@@ -4,9 +4,12 @@
 <div style="display:flex; justify-content:center">
     <div>
         <input type="text" spellcheck="true"  style="height:40px; width:800px; font-size:larger; padding:3px; margin-bottom:10px" id="pg_title" readonly />
+        <div class="backfront" style="margin-bottom:20px"></div>
         <div id="pg_content" spellcheck="true"></div>
+        <div class="backfront" style="margin-top:40px"></div>
     </div>
 </div>
+
 <style>
     @import url('https://fonts.googleapis.com/css?family=Open+Sans');
     p {
@@ -29,6 +32,11 @@
         return "{{ pageid }}"
     }
 
+    function get_username() {
+        return "{{ username }}"
+        console.log("{{ username }}")
+    }
+
     function back() {
         window.location.href = "/web/{{ username }}/bucket/" + get_bucket_id()
     }
@@ -38,7 +46,7 @@
 <script src="/static/guestlogin.js"></script>
 <script>
     un = "{{ username }}"
-    sk = "-1"
+    if (sk === null) {sk = "-1"}
 </script>
 <script src="/static/page.js"></script>
 <script type="text/javascript">

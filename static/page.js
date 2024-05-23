@@ -27,8 +27,12 @@ async function update() {
     oV.value = data["page"].porder
 
     vis = document.getElementById("vis")
-    vis.checked = data["page"].public
+    if (vis !== null) {
+        vis.checked = data["page"].public
+    }
 
+    nav = data["nav"]
+    console.log(nav)
 
     var replacedStr = data["page"].description.replace(/\[\@\@\#%\]/g, "\"");
     tinymce.activeEditor.setContent(replacedStr)
@@ -38,6 +42,7 @@ async function update() {
     };
 }
 
+// A function for view-only page
 async function stick_text_to_normal_box() {
     let pagedata = {'username':un, 'session':sk, 'bucketid':bid, 'pageid':pid}
     console.log(pagedata)
@@ -58,12 +63,48 @@ async function stick_text_to_normal_box() {
     
     pagedata = document.getElementById("pg_content")
     pagedata.innerHTML = replacedStr
-}
 
-async function generate_next_handlers() {
-    
-}
+    backfrontAreas = document.getElementsByClassName("backfront")
+    function appendBackfront(div) {
+        console.log(data["nav"].front)
+        username = get_username()
 
+        if ("back" in data["nav"]) {            
+            var button = document.createElement("button");
+            button.innerHTML = "Previous Page <";        
+            button.style="margin-right:20px"
+            button.onclick = function() {
+                window.location.href = ("/web/" + get_username() + "/bucket/" + bid + "/page/" + data["nav"].back)         
+            }
+            div.append(button)
+        }
+
+        var button = document.createElement("button");
+        button.innerHTML = "Table of Contents";        
+        button.style="margin-right:20px"
+        button.onclick = function() {
+            window.location.href = ("/web/" + get_username() + "/bucket/" + bid)
+        }
+        div.append(button)
+             
+        if ("front" in data["nav"]) {
+            
+            var button = document.createElement("button");
+            button.innerHTML = "> Next Page";
+            
+            button.onclick = function() {
+                window.location.href = ("/web/" + get_username() + "/bucket/" + bid + "/page/" + data["nav"].front)         
+            }
+
+            div.append(button)
+        }
+
+    }
+
+    for(var area of backfrontAreas) {
+        appendBackfront(area)
+    }    
+}
 
 async function save() {
     head = document.getElementById("pg_title").value

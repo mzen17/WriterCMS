@@ -11,8 +11,9 @@ async function get_results() {
         },
         body: "{\"username\":\"" + un + "\", \"session\":\""+ sk +"\"}"
     }
-    response = fetch("/users/session_validate", send)
-    data = response.json()
+
+    response = await fetch("/users/session_validate", send)
+    data = await response.json()
 
     return data["resp"]
 }

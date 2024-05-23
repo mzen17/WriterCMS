@@ -1,9 +1,6 @@
 box = document.getElementById("status_text")
 id = get_bucket_id()
 
-//un = getCookie("username")
-//sk = getCookie("session_ck")
-
 del_bid = -1
 
 back = function () {}
@@ -33,8 +30,9 @@ async function update() {
     vis = data["bucket"].visibility
 
     chkbox = document.getElementById("vis")
-    chkbox.checked = vis
-
+    if (chkbox !== null) { 
+        chkbox.checked = vis
+    }
     var div = document.getElementById('status_box');
 
     var note = document.createElement("h4")
@@ -45,19 +43,6 @@ async function update() {
     if(data["pages"].length + data["buckets"].length < 1) {
         note.innerText = "This bucket have no pages or buckets to display ."
     } else {
-        // Page sorter
-        function compare_id( a, b ) {
-            if ( a.id < b.id ){
-                return -1;
-            }
-            if ( a.id > b.id ){
-                return 1;
-            }
-            return 0;
-            }
-            data["pages"].sort( compare_id );
-            data["buckets"].sort( compare_id );
-
         var div = document.getElementById('status_box');
         var list = document.createElement('ul')
 
@@ -139,7 +124,6 @@ async function submit(event) {
             },
             body: JSON.stringify(data)
         }
-
 
         response = await fetch("/editor/pages/add", send)
         data = await response.json()
