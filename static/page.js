@@ -18,8 +18,6 @@ async function update() {
     response = await fetch("/pages/get", send)
     data = await response.json()
 
-    console.log(data)
-   
     head = document.getElementById("pg_title")
     head.value = data["page"].title
 
@@ -32,7 +30,6 @@ async function update() {
     }
 
     nav = data["nav"]
-    console.log(nav)
 
     var replacedStr = data["page"].description.replace(/\[\@\@\#%\]/g, "\"");
     tinymce.activeEditor.setContent(replacedStr)

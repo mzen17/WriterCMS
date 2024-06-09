@@ -2,8 +2,8 @@
       
 {% block page %}
 <div style="display:flex; justify-content:center">
-    <div>
-        <input type="text" spellcheck="true"  style="height:40px; width:800px; font-size:larger; padding:3px; margin-bottom:10px" id="pg_title" readonly />
+    <div id="page_content">
+        <input type="text" spellcheck="true" style="height:40px; font-size:larger; padding:3px; width:100%; margin-bottom:10px" id="pg_title" readonly />
         <div class="backfront" style="margin-bottom:20px"></div>
         <div id="pg_content" spellcheck="true"></div>
         <div class="backfront" style="margin-top:40px"></div>
@@ -17,8 +17,17 @@
         font-family: "Open Sans", "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
     }
 
-    #pg_content{
-        width:800px;
+    #page_content {
+        padding:10px;
+    }
+
+
+    /* Styles for large devices (600px and above) */
+    @media screen and (min-width: 768px) {
+        #page_content {
+            width:800px; 
+            padding:0px;
+        }
     }
 </style>
 {% endblock page %}
@@ -47,6 +56,8 @@
 <script>
     un = "{{ username }}"
     if (sk === null) {sk = "-1"}
+    console.log("Height: " + window.innerWidth);
+
 </script>
 <script src="/static/page.js"></script>
 <script type="text/javascript">

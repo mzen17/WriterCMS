@@ -85,12 +85,13 @@ async function update() {
     console.log(del_bid)
 
     back = function () {
-        if(del_bid) {
-            if(typeof linkpfx == 'undefined') {linkpfx="/bucket/"}
+        if(del_bid != null) {
+            if(typeof linkpfx == 'undefined') {linkpfx = "/bucket/"}
+            console.log("NON NuLl bid?")
             window.location.href= linkpfx + del_bid
-        }else {
-            if(typeof linkpfx == 'undefined') {linkpfx="/buckets/"}
-            window.location.href=linkpfx
+        } else {
+            if(typeof linkpfx == 'undefined') {linkpfx = "/buckets/"} else {linkpfx = "/web/" + un }
+            window.location.href = linkpfx
         }
     }
 }
