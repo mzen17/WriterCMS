@@ -21,22 +21,25 @@ What current software exist for such?
 Why not use one of the above instead of creating?
 
 - Most do not think of each page as an individual document, and lack features for pages (e.g, word count per page)
+- Clunky export integration pipeline (no CI/CD to publish to web)
 - Peformance issues on those with individual pages. (not good for >300 pages)
 - Closed-Source Software that may require payment and have a very undocumented extension API.
 
 ## Current Status
-MVP state. Do not use in production unless in a private network with a firewall for local users such as family, friends, etc, whom you have a trustful relationship.
+Currently in alpha. There may be security issues, and is not ready for public endpoints.
 
 Unsecure.
 
 - Createusers endpoint can be spammed to flood database and prevent normal users (needs a rate limit)
 - Bucket and page endpoints can be flooded to waste storage (needs storage cap)
+- Certain APIs may or may not be unsecure. None are documented, because any known would've been fixed, but be aware.
 
 Other problems
 
 - GUI is not in any good shape.
 - Many skeletons in the API.
-- Documententation of code subpar. 
+- Documententation of code subpar.
+- Word spelling suggestions are very slow and freeze webpage (currently issue with Typo.js)
 
 ## Usage Notes
 Create a venv, install reqs.txt. Create a .env file, and place tinymce url into it.
@@ -54,4 +57,4 @@ If new tools need to be added during project, they must have a good reason.
 - Python with FastAPI.
 - Database with SQLite/PostgreSQL
 - TinyMCE for frontend editing.
-- HTMX (if needed), or a mightier frontend (React, Svelte)
+- Raw HTML on frontend
