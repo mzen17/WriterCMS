@@ -1,0 +1,38 @@
+@import url('https://fonts.googleapis.com/css?family=Open+Sans');
+
+:root {
+    --color-mode: #19171f;
+    --text-mode: #fff;
+    --link-color: #0af;
+}
+
+@media (prefers-color-scheme: light) {
+    :root {
+        --link-color: #00f;
+        --color-mode: #fff;
+        --text-mode: #000;
+    }
+}
+
+a {
+    text-decoration:none;
+    color: var(--link-color);
+}
+
+body {
+    font-family: "Open Sans", "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
+    color: var(--text-mode);
+    background-color: var(--color-mode);
+}
+
+button {
+    background-color: var(--color-mode);
+    color: var(--text-mode);
+}
+
+input {
+
+    background-color : var(--color-mode); 
+    color: var(--text-mode);
+  
+}  

@@ -5,8 +5,7 @@ pid = get_pg_id();
 
 // Load page
 async function update() {
-    box.innerText = ("You are currently logged in as " + un)
-    
+    // Example usage
     let pagedata = {'username':un, 'session':sk, 'bucketid':bid, 'pageid':pid}
     send = {
         method: 'POST',
@@ -104,6 +103,8 @@ async function stick_text_to_normal_box() {
 }
 
 async function save() {
+    clearAnnotations()
+
     head = document.getElementById("pg_title").value
     body = tinymce.activeEditor.getContent({format : 'raw'});
     var replacedStr = body.replace(/"/g, '[@@#%]');
