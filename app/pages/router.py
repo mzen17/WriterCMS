@@ -16,8 +16,8 @@ def list_pages(resp: fmodels.PageRequest, db: Session = Depends(get_db)):
     page_list.sort(key=lambda x: x.id if x.id is not None else -1)
     page_list.sort(key=lambda x: x.porder if x.porder is not None else -1)
 
-    for page in page_list:
-        print(page.id)
+    #for page in page_list:
+    #    print(page.id)
 
     if functions.check_session(resp.username, resp.session, db):
        if functions.verify_bucket_ownership(resp.username, resp.bucketid, db):
@@ -32,10 +32,7 @@ def list_pages(resp: fmodels.PageRequest, db: Session = Depends(get_db)):
 @router.post("/pages/get")
 def pull_page(resp: fmodels.PageRequest, db: Session = Depends(get_db)):
     page = crud.get_page(resp.bucketid, resp.pageid, db)
-    print("Looking...")
     if page:
-        print(page.public)
-
         user_valid = functions.check_session(resp.username, resp.session, db)
         user_owns = functions.verify_bucket_ownership(resp.username, resp.bucketid, db)
 

@@ -29,15 +29,21 @@ def get_user_data(username: str, session: Session) -> models.User | None:
 
 # Function to update user.
 # Returns False if failed, and True if success.
-def update_user(user: models.User, session: Session):
+def update_user(username: str, new_settings: fmodels.UserRequestSetting, session: Session):
     if session:
-        target_user = session.query(models.User).filter_by(username=user.username).first()
+        target_user = session.query(models.User).filter_by(username=username).first()
 
-        if user:
-            target_user = user
+        if target_user:
+            if new_settings.dictionary:
+                target_user.dictionary = new_settings.dictionary
+            
+            if new_settings.theme is not None:
+                target_user.theme = new_settings.theme
+
             session.commit()
             return True
     return False
+
 
 def retrieve_users(session: Session):
     user_summary = []

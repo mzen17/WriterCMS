@@ -26,6 +26,23 @@ def login(creds: fmodels.Credentials, db: Session = Depends(get_db)):
     return {"resp":False}
 
 
+@router.post("/users/settings")
+def get_settings(creds: fmodels.UserRequest, db: Session = Depends(get_db)):
+    if (functions.check_session(creds.username, creds.session, db)):
+        user = crud.get_user_data(creds.username, db)
+        return {"resp":True, "dict": user.dictionary, "theme":user.theme}
+    return {"resp":False}
+
+
+@router.post("/users/update")
+def get_settings(creds: fmodels.UserRequestSetting, db: Session = Depends(get_db)):
+    if (functions.check_session(creds.username, creds.session, db)):
+
+        return {"resp":crud.update_user(creds.username, creds, db)}
+
+    return {"resp":False}
+
+
 @router.post("/users/session_validate")
 def validate_session(creds: fmodels.UserRequest, db: Session = Depends(get_db)):
     return {"resp":functions.check_session(creds.username, creds.session, db)}

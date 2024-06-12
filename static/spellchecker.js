@@ -37,9 +37,7 @@ function placeAnnotations(list2drop, listOfCorr) {
             let tstr = value[0]
             initChar = tstr.charAt(0);
             endChar = tstr.charAt(tstr.length - 1);
-            console.log("YES: " + tstr + " | " + initChar + endChar)
         }
-        console.log("GIN: " + (initChar + prefx + s + endfx + endChar))
 
         data = data.replace(filter,  (initChar + prefx + s + endfx + endChar) )
     }
@@ -47,12 +45,26 @@ function placeAnnotations(list2drop, listOfCorr) {
     tinymce.activeEditor.setContent(data)
 }
 
-function spellcheckBlob(fast) {
-    clearAnnotations()
-    var dictionary = new Typo("en-US", false, false, { dictionaryPath: "/static/dicts" })
+// Fast -- boolean (suggestions or no), extrawords -- List[str]
+async function spellcheckBlob(fast) {
+    if (typeof getDictLocation !== "function") { 
+        alert("This will break, because dictionary_path was not defined. Please contact site owner/maintainer.")
+    }
 
-    dictionary.dictionaryTable["Ayaka"] = []
-    dictionary.dictionaryTable["Ayaka"].push([]);
+    clearAnnotations()
+
+    var dictionary = new Typo("en-US", false, false, { dictionaryPath: getDictLocation() })
+
+    if (typeof getExtraDict === "function") { 
+        extraWords = await getExtraDict();
+
+        function append2dict(word) {
+            console.log("Special Add: " + word);
+            dictionary.dictionaryTable[word] = []
+            dictionary.dictionaryTable[word].push([]);
+        }
+        extraWords.forEach(append2dict);
+    }
 
     var data = tinymce.activeEditor.getContent(); // String
 
@@ -114,3 +126,47 @@ function spellcheckBlob(fast) {
 
     placeAnnotations(wrdlist, correct);
 }
+
+function addWord2Dict() {
+    let collect = tinyMCE.activeEditor.selection.getContent();
+    words2append = collect.split(" ");
+
+    if (typeof addWordToUserDict === "function") { 
+        words2append.forEach(addWordToUserDict);
+    }
+}
+
+tinymce.PluginManager.add('spellchecker', (editor, url) => {
+    editor.ui.registry.addMenuItem('spell-check-fast', {
+        text: 'Spell Check',
+        onAction: () => spellcheckBlob(true)
+    });
+
+    editor.ui.registry.addMenuItem('spell-check', {
+        text: 'Spell Check Suggestions (Very Slow)',
+        onAction: () => spellcheckBlob(false)
+    });
+
+    editor.ui.registry.addMenuItem('spell-single', {
+        text: 'Spelling Suggest Word',
+        onAction: () => suggestSingle()
+    });
+
+    editor.ui.registry.addMenuItem('add-word', {
+        text: 'Add word to dictionary',
+        onAction: () => addWord2Dict()
+    });
+
+    editor.ui.registry.addMenuItem('clear-annotations', {
+        text: 'Clear Annotations',
+        onAction: () => clearAnnotations()
+    });
+
+  /* Return the metadata for the help plugin */
+  return {
+    getMetadata: () => ({
+      name: 'OSS Spellchecker for TinyMCE',
+      url: 'https://mzen.dev'
+    })
+  };
+});

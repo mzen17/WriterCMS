@@ -2,6 +2,7 @@ box = document.getElementById("status_text")
 
 bid = get_bucket_id()
 pid = get_pg_id();
+let pgData = "";
 
 // Load page
 async function update() {
@@ -31,10 +32,16 @@ async function update() {
     nav = data["nav"]
 
     var replacedStr = data["page"].description.replace(/\[\@\@\#%\]/g, "\"");
+    pgData = replacedStr
+
     tinymce.activeEditor.setContent(replacedStr)
 
     window.onbeforeunload = function() {
-        return "Data will be lost if you leave the page, are you sure?";
+   //     console.log(tinymce.activeEditor.getContent())
+    //    console.log(pgData)
+    //    if (tinymce.activeEditor.getContent() !== pgData) {
+            return "Data will be lost if you leave the page, are you sure?";
+    //    }
     };
 }
 
@@ -169,5 +176,63 @@ async function del() {
             window.onbeforeunload = function() {};
             window.location.href=("/bucket/" + bid)
         }
+    }
+}
+
+async function getExtraDict() {
+    let pagedata = {'username':un, 'session':sk}
+    send = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(pagedata)
+    }
+    response = await fetch("/users/settings", send)
+    data = await response.json()
+
+    if (data["resp"]) {
+        console.log(data.dict);
+        return data.dict;
+    } else {
+        return [];
+    }
+}
+
+function getDictLocation() {
+    return "/static/dicts"
+}
+
+async function addWordToUserDict(word) {
+    if (word !== "" ) {
+        let pagedata = {'username':un, 'session':sk}
+        send = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(pagedata)
+        }
+        response = await fetch("/users/settings", send)
+        data = await response.json()
+
+        data.dict.push(word);
+        let pdate = { 'username':un, 'session':sk, 'dictionary':data.dict}
+        send = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(pdate)
+        }
+        console.log("SND DATA: ", send);
+        response = await fetch("/users/update", send)
+        data = await response.json()
+
+        if(!data["resp"]) {
+            alert("Adding word did not work. Try again later.")
+        }
+    } else {
+        alert("Please select something.")
     }
 }

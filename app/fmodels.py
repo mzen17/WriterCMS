@@ -21,6 +21,15 @@ class UserRequest(BaseModel):
     session: str
 
 
+class UserRequestSetting(BaseModel):
+    """A request with session instead of password, for things like validating access"""
+    username: str
+    session: str
+    dictionary: Optional[list[str]] = None
+    theme: Optional[bool] = None
+
+
+
 class BucketRequest(BaseModel):
     """A request for a bucket. Has a bucketid included so that it can target a particular bucket"""
     username: str

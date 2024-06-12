@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, TEXT, Boolean
+from sqlalchemy import Column, ForeignKey, Integer, String, TEXT, Boolean, ARRAY
 from sqlalchemy.orm import relationship
 from app.database.connector import Base
 
@@ -11,6 +11,9 @@ class User(Base):
     salt = Column(String)
     session = Column(String)
     session_exp = Column(Integer)
+
+    dictionary = Column(ARRAY(String))
+    theme = Column(Boolean)
 
     buckets = relationship("Bucket", back_populates="owner")
 

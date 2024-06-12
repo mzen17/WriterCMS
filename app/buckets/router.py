@@ -22,6 +22,7 @@ def list_buckets(user: fmodels.UserRequest, db: Session = Depends(get_db)):
                     buckets.append(bucket)
         return {"resp":True, "buckets":buckets}
 
+
 @router.post("/buckets/get")
 def get_buckets(bk: fmodels.BucketRequest, db: Session = Depends(get_db)):
     tb = crud.get_bucket(bk.bucketid, db)
@@ -45,10 +46,14 @@ def get_buckets(bk: fmodels.BucketRequest, db: Session = Depends(get_db)):
 
     return {"resp":False}
 
-# Editor-only commands
+
+# Editor-only commands (Run verification process)
 @router.post("/editor/buckets/create")
 def create_bucket(bucket: fmodels.BucketData, db: Session = Depends(get_db)):
-    return {"resp":crud.create_bucket(bucket, db)}
+    if check_session(bucket.username, bucket.session, db):
+        return {"resp":crud.create_bucket(bucket, db)}
+    return {"resp":False}
+
 
 
 @router.post("/editor/buckets/update")

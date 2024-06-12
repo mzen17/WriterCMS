@@ -4,17 +4,18 @@
 
 def test_bucket_creation(init_client, set_up_john):
     set_up_john["bucket_name"] = "Test Bucket"
-    resp = init_client.post("/buckets/create", json=set_up_john)
+    resp = init_client.post("/buckets/editor/create", json=set_up_john)
+    print(resp)
     assert resp.json()["resp"] == True, "john's session should work."
 
 
 def test_bucket_list(init_client, set_up_john):
     set_up_john["bucket_name"] = "Test Bucket"
-    resp = init_client.post("/buckets/create", json=set_up_john)
+    resp = init_client.post("/buckets/editor/create", json=set_up_john)
     set_up_john["bucket_name"] = "Test Bucket"
-    resp = init_client.post("/buckets/create", json=set_up_john)
+    resp = init_client.post("/buckets/editor/create", json=set_up_john)
     set_up_john["bucket_name"] = "Test Bucket"
-    resp = init_client.post("/buckets/create", json=set_up_john)
+    resp = init_client.post("/buckets/editor/create", json=set_up_john)
   
     del set_up_john['bucket_name']
     resp = init_client.post("/buckets/list", json=set_up_john)
@@ -30,11 +31,11 @@ def test_bucket_list_0(init_client, set_up_john):
 
 def test_bucket_list_contents(init_client, set_up_john):
     set_up_john["bucket_name"] = "Test Bucket"
-    resp = init_client.post("/buckets/create", json=set_up_john)
+    resp = init_client.post("/buckets/editor/create", json=set_up_john)
     set_up_john["bucket_name"] = "Test 2"
-    resp = init_client.post("/buckets/create", json=set_up_john)
+    resp = init_client.post("/buckets/editor/create", json=set_up_john)
     set_up_john["bucket_name"] = "Test 3"
-    resp = init_client.post("/buckets/create", json=set_up_john)
+    resp = init_client.post("/buckets/editor/create", json=set_up_john)
   
     resp = init_client.post("/buckets/list", json=set_up_john)
     bks = resp.json()["buckets"]
@@ -46,11 +47,11 @@ def test_bucket_list_contents(init_client, set_up_john):
 
 def test_bucket_get(init_client, set_up_john):
     set_up_john["bucket_name"] = "Test Bucket"
-    resp = init_client.post("/buckets/create", json=set_up_john)
+    resp = init_client.post("/buckets/editor/create", json=set_up_john)
     set_up_john["bucket_name"] = "Test Bucket2"
-    resp = init_client.post("/buckets/create", json=set_up_john)
+    resp = init_client.post("/buckets/editor/create", json=set_up_john)
     set_up_john["bucket_name"] = "Test Bucket3"
-    resp = init_client.post("/buckets/create", json=set_up_john)
+    resp = init_client.post("/buckets/editor/create", json=set_up_john)
 
     del set_up_john['bucket_name']
     set_up_john['bucketid']=1
