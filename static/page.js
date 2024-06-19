@@ -20,6 +20,7 @@ async function update() {
 
     head = document.getElementById("pg_title")
     head.value = data["page"].title
+    document.title = "PMW|p|" + data["page"].title
 
     oV = document.getElementById("order")
     oV.value = data["page"].porder
@@ -48,7 +49,6 @@ async function update() {
 // A function for view-only page
 async function stick_text_to_normal_box() {
     let pagedata = {'username':un, 'session':sk, 'bucketid':bid, 'pageid':pid}
-    console.log(pagedata)
     send = {
         method: 'POST',
         headers: {
@@ -64,6 +64,9 @@ async function stick_text_to_normal_box() {
     head.value = data["page"].title
     var replacedStr = data["page"].description.replace(/\[\@\@\#%\]/g, "\"");
     
+    document.title = "PM|p|" + data["page"].title
+    console.log("DT: " + document.title)
+
     pagedata = document.getElementById("pg_content")
     pagedata.innerHTML = replacedStr
 

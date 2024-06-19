@@ -45,6 +45,22 @@ def update_user(username: str, new_settings: fmodels.UserRequestSetting, session
     return False
 
 
+# Function to update user.
+# Returns False if failed, and True if success.
+def update_user_auth(username: str, session_ck: str, session_exp, session: Session):
+    if session:
+        target_user = session.query(models.User).filter_by(username=username).first()
+
+        if target_user:
+            target_user.session = session_ck
+            target_user.session_exp = session_exp
+
+            session.commit()
+            return True
+    return False
+
+
+
 def retrieve_users(session: Session):
     user_summary = []
     users = session.query(models.User).all()

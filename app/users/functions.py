@@ -20,12 +20,7 @@ def create_session_token(username: str, db: Session) -> (str, int):
     hash_token = generate_hash()
     exp_time = time.time() + 2592000
 
-    user = user_crud.get_user_data(username, db)
-    if user:
-        user.session = hash_token
-        user.session_exp = exp_time
-
-        user_crud.update_user(user, db)
+    user_crud.update_user_auth(username, hash_token, exp_time, db)
     
     return hash_token, exp_time
 
