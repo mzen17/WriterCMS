@@ -20,7 +20,7 @@ async function update() {
 
     head = document.getElementById("pg_title")
     head.value = data["page"].title
-    document.title = "PMW|p|" + data["page"].title
+    document.title = "p | " + data["page"].title
 
     oV = document.getElementById("order")
     oV.value = data["page"].porder
@@ -61,11 +61,10 @@ async function stick_text_to_normal_box() {
     console.log(data)
 
     head = document.getElementById("pg_title")
-    head.value = data["page"].title
+    head.innerHTML = data["page"].title
     var replacedStr = data["page"].description.replace(/\[\@\@\#%\]/g, "\"");
     
-    document.title = "PM|p|" + data["page"].title
-    console.log("DT: " + document.title)
+    document.title = "p | " + data["page"].title
 
     pagedata = document.getElementById("pg_content")
     pagedata.innerHTML = replacedStr
@@ -76,33 +75,28 @@ async function stick_text_to_normal_box() {
         username = get_username()
 
         if ("back" in data["nav"]) {            
-            var button = document.createElement("button");
-            button.innerHTML = "Previous Page <";        
-            button.style="margin-right:20px"
-            button.onclick = function() {
-                window.location.href = ("/web/" + get_username() + "/bucket/" + bid + "/page/" + data["nav"].back)         
-            }
-            div.append(button)
+            var link = document.createElement("a");
+            link.innerHTML = "Previous Page";        
+            link.style="margin-right:20px"
+            link.href = "/web/" + get_username() + "/bucket/" + bid + "/page/" + data["nav"].back
+            div.append(link)
         }
 
-        var button = document.createElement("button");
-        button.innerHTML = "Table of Contents";        
-        button.style="margin-right:20px"
-        button.onclick = function() {
-            window.location.href = ("/web/" + get_username() + "/bucket/" + bid)
-        }
-        div.append(button)
+        var link = document.createElement("a");
+        link.innerHTML = "Table of Contents";
+        link.style = "margin-right:20px";
+        link.href = "/web/" + get_username() + "/bucket/" + bid;
+        
+        div.append(link);
+        
              
         if ("front" in data["nav"]) {
             
-            var button = document.createElement("button");
-            button.innerHTML = "> Next Page";
+            var link = document.createElement("a");
+            link.innerHTML = "Next Page";
             
-            button.onclick = function() {
-                window.location.href = ("/web/" + get_username() + "/bucket/" + bid + "/page/" + data["nav"].front)         
-            }
-
-            div.append(button)
+            link.href = ("/web/" + get_username() + "/bucket/" + bid + "/page/" + data["nav"].front)         
+            div.append(link)
         }
 
     }

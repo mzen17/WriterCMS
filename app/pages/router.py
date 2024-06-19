@@ -58,6 +58,7 @@ def pull_page(resp: fmodels.PageRequest, db: Session = Depends(get_db)):
                 nav["back"] = page_list[index - 1].id
 
             return {"resp":True,"page": crud.get_page(resp.bucketid, resp.pageid, db), "nav": nav}
+    return {"resp":False}
 
 
 @router.post("/editor/pages/update")
@@ -80,6 +81,7 @@ def create_page(resp: fmodels.PageData, db: Session = Depends(get_db)):
             return {"resp": True}
 
     return {"resp":False}
+
 
 @router.post("/editor/pages/delete")
 def delete_page(resp: fmodels.PageRequest, db: Session = Depends(get_db)):

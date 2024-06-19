@@ -1,14 +1,39 @@
-{% extends "twocolumn.html" %}
-      
+{% extends "base.html" %}
+{% block nav %}
+{% endblock nav %}
+
 {% block page %}
-<div style="display:flex; justify-content:center">
-    <div id="page_content">
-        <input type="text" spellcheck="true" style="height:40px; font-size:larger; padding:3px; width:100%; margin-bottom:10px" id="pg_title" readonly />
-        <div class="backfront" style="margin-bottom:20px"></div>
-        <div id="pg_content" spellcheck="true"></div>
-        <div class="backfront" style="margin-top:40px"></div>
-    </div>
-</div>
+<main style="display:flex; justify-content:center">
+    <article id="page_content">
+        <header>
+            <h1 type="text" style=" font-size:2em; margin-bottom: 5px; width:100%" id="pg_title">
+                {{ pg_title }}
+            </h1>
+            <div class="backfront" style="margin-bottom:20px">
+                {% if back %}
+                    <a href="{{ back }}" style="margin-right:20px">Previous Chapter</a>
+                {% endif %}
+                <a href="{{ tbURL }}" style="margin-right:20px">Table of Content</a>
+                {% if next %}
+                    <a href="{{ next }}">Next Chapter</a>
+                {% endif %}
+            </div>
+    
+        </header>
+        <div id="pg_content" .innerHTML="${{pg_cnt}}">
+            {{pg_cnt | safe}}
+        </div>
+        <div class="backfront" style="margin-top:20px">
+            {% if back %}
+                <a href="{{ back }}" style="margin-right:20px">Previous Chapter</a>
+            {% endif %}
+            <a href="{{ tbURL }}" style="margin-right:20px">Table of Content</a>
+            {% if next %}
+                <a href="{{ next }}">Next Chapter</a>
+            {% endif %}
+        </div>
+    </article>
+</main>
 
 <style>
     @import url('https://fonts.googleapis.com/css?family=Open+Sans');
@@ -21,7 +46,6 @@
         padding:10px;
     }
 
-
     /* Styles for large devices (600px and above) */
     @media screen and (min-width: 768px) {
         #page_content {
@@ -31,39 +55,6 @@
     }
 </style>
 {% endblock page %}
-
-{% block scripts %}
-<script>
-    function get_bucket_id() {
-        return "{{ bucketid }}"
-    }
-    function get_pg_id() {
-        return "{{ pageid }}"
-    }
-
-    function get_username() {
-        return "{{ username }}"
-        console.log("{{ username }}")
-    }
-
-    function back() {
-        window.location.href = "/web/{{ username }}/bucket/" + get_bucket_id()
-    }
-</script>
-
-<script src="/static/cookie.js"></script>
-<script src="/static/guestlogin.js"></script>
-<script>
-    un = "{{ username }}"
-    if (sk === null) {sk = "-1"}
-    console.log("Height: " + window.innerWidth);
-
-</script>
-<script src="/static/page.js"></script>
-<script type="text/javascript">
-    stick_text_to_normal_box()
-</script>      
-{% endblock scripts %}
 
 
 
