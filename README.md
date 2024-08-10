@@ -1,10 +1,12 @@
 # Project
 Page Word Processor is a web-based word processor with a very niche use case.
 
-![Writer Demo](demos/WriterDemo.png)
+![Writer Demo](demos/WriterDEMO.png)
+
 *A picture of what the writer mode looks like.*
 
-![Reader Demo](demos/ReaderDemo.png)
+![Reader Demo](demos/ReaderDEMO.png)
+
 *A picture of what the reader mode looks like.*
 
 ## Why?
