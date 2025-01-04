@@ -1,5 +1,5 @@
 # Project
-Page Word Processor is a web-based word processor with a very niche use case.
+StarCMS is a web-based word processor with a very niche use case.
 
 ![Writer Demo](demos/WriterDEMO.png)
 
