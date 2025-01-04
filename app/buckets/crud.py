@@ -124,4 +124,3 @@ def git_all_pub_buckets(session: Session):
         pile.append({"name":bucket.name, "id":bucket.id})
     
     return pile
-    pass

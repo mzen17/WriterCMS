@@ -1,8 +1,9 @@
 """Main method for application. Routes that return HTML."""
 
 import os
+import shutil
 
-from fastapi import FastAPI, Request, Depends
+from fastapi import FastAPI, Request, Depends, UploadFile, File, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -14,6 +15,7 @@ import app.pages.router as pages
 
 from app.database.connector import engine, get_db
 from app.database import models
+from app.image_tool import ImageManager
 
 models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
@@ -27,6 +29,8 @@ app.include_router(users.router)
 app.include_router(buckets.router)
 app.include_router(pages.router)
 
+ig = ImageManager()
+
 @app.get("/", response_class=HTMLResponse)
 async def main(request: Request):
     """Main Home Page"""
@@ -38,6 +42,19 @@ async def login_view(request: Request):
     """Login Page"""
     return templates.TemplateResponse("login.html",{"request": request})
 
+@app.post("/upload_img")
+async def upload_image(file: UploadFile = File(...)):
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Invalid file type. Please upload an image.")
+    
+    try:
+        with open(f"/tmp/{file.filename}", "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        data = ig.upload_image(f"/tmp/{file.filename}")
+        return {"succ":True, "message": "File uploaded successfully!", "filename":data}
+    except Exception as e:
+        return {"succ":False, "message": str(e)}
 
 @app.get("/buckets", response_class=HTMLResponse)
 async def buckets_view(request: Request):

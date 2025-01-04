@@ -8,11 +8,12 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     username = Column(String, unique=True, index=True)
     password = Column(String)
+    
     salt = Column(String)
     session = Column(String)
     session_exp = Column(Integer)
 
-    dictionary = Column(ARRAY(String))
+    dictionary = Column(String)
     theme = Column(Boolean)
 
     buckets = relationship("Bucket", back_populates="owner")

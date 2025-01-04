@@ -55,7 +55,6 @@ def create_bucket(bucket: fmodels.BucketData, db: Session = Depends(get_db)):
     return {"resp":False}
 
 
-
 @router.post("/editor/buckets/update")
 def update_bucket(resp: fmodels.BucketData, db: Session = Depends(get_db)):
 

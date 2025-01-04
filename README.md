@@ -5,10 +5,6 @@ StarCMS is a web-based word processor with a very niche use case.
 
 *A picture of what the writer mode looks like.*
 
-![Reader Demo](demos/ReaderDEMO.png)
-
-*A picture of what the reader mode looks like.*
-
 ## Purpose
 This project's use case is for creating and managing any document that severely relies on paging while providing a streamlined workflow for publishing to the web.
 This particularly exists for the two following purposes:
@@ -58,12 +54,15 @@ Other problems
 - Word spelling suggestions are very slow and freeze webpage (currently issue with Typo.js)
 
 ## Usage Notes
-Create a venv, install reqs.txt. Create a .env file, and place tinymce url into it.
+Create a venv, install reqs.txt. Create a .env file, and place tinymce url into it. Input S3 credentials for image support.
 Then, create a sqlite3 database in the directory called app.db. and run the following command to bring up the webserver:\
 
-```uvicorn app.main:app --host 0.0.0.0```
+```./run.sh```\
+```./prun.sh```
 
-Then, navigate to the URL. It does not have a functional GUI to create users, so go to the URL/docs, and use the "Try It" button in the FastAPI docs. The app is now ready, but do note that to delete pages, buckets, or users, you must use SQL and execute it on the app.db.
+The first runs the viewer, the second runs the editor.
+
+Navigate to the URL. It does not have a functional GUI to create users, so go to the URL/docs, and use the "Try It" button in the FastAPI docs. The app is now ready, but do note that to delete pages, buckets, or users, you must use SQL and execute it on the app.db.
 
 ## Toolchain and framework
 All new projects must have their toolchain and framework defined before the project starts.
