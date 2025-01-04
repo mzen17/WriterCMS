@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block nav %}
+{% endblock nav %}
+
+{% block page %}
+<div style="margin:10px">
+    <h2>{{username}}'s Profile</h2>
+    <p>Bio to be added.</p>
+    <h3>{{username}}'s Top Content</h3>
+    {% for item in buckets %}
+    <li style="margin-bottom:5px; list-style-type: none">
+        <a href="/b/{{item.id}}/" alt="{{item.name}}'s profile.">{{ item.name }}</a>
+    </li>
+{% endfor %}
+</div>
+{% endblock page %}

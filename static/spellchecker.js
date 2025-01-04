@@ -1,3 +1,10 @@
+/*
+Code for spellchecker plugin for tinymce
+This plugin is currently extremely slow and buggy.
+
+It provides a simple spell check and highlights words that need help.
+*/
+
 function clearAnnotations() {
     var data = tinymce.activeEditor.getContent(); // String
 

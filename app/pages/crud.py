@@ -25,8 +25,11 @@ def get_pages(bucket_id: int, session: Session) -> list[models.Page]:
 
 
 def get_page(bucket_id: int, page_id: int, session: Session) -> models.Page | None:
+    """bucket_id is not used. Just throw random int (e.g, -1)
+    This will be cleaned up later.
+    """
     if session:
-        target_page = session.query(models.Page).filter_by(owner_id=bucket_id).filter_by(id=page_id).first()
+        target_page = session.query(models.Page).filter_by(id=page_id).first()
         return target_page
     return None
 

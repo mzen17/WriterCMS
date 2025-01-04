@@ -1,21 +1,21 @@
 {% extends "base.html" %}
+{% block nav %}
+{% endblock nav %}
 
 {% block page %}
-<div>
-    <input style="height:40px; width:600px; font-size:larger; padding:3px; margin-bottom:10px; display:inline-block" id="buck_name" readonly></input><br/>
-</div>
-<div id="status_box">
+<div style="margin:10px">
+    <h2>{{name}}</h2>
+    {% for item in buckets %}
+    <li style="margin-bottom:5px; list-style-type: none">
+        <a href="/b/{{item.id}}/" alt="{{item.name}}'s content.">{{ item.name }}</a>
+    </li>
+{% endfor %}
+{% for item in pages %}
+<li style="margin-bottom:5px; list-style-type: none">
+    <a href="/p/{{item.id}}/" alt="{{item.name}}'s profile.">{{ item.name }}</a>
+</li>
+{% endfor %}
+<hr>
+<a href="{{ backurl }}">Return Up.</a>
 </div>
 {% endblock page %}
-{% block scripts %}
-<script>
-    function get_bucket_id() {
-        return "{{ bucketid }}"
-    }
-    un = "{{ username }}"
-    linkpfx = "/web/{{ username }}/bucket/"
-</script>
-<script src="/static/cookie.js"></script>
-<script src="/static/guestlogin.js"></script>
-<script src="/static/sbucket.js"></script>
-{% endblock scripts %}
