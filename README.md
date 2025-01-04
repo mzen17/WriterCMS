@@ -2,6 +2,20 @@
 ![image](https://github.com/user-attachments/assets/753305a7-4f83-457a-98d8-4310a4c1e6ce)
 
 StarCMS is a web-based word processor with a very niche use case.
+StarCMS is a powerful CMS designed with simplicity in mind. It is ideal for bloggers, novel writers, and other various end-users as it is designed to be extremely simple yet with power features.
+
+## Features
+- Automatic Hierachy
+Designed like a file system, StarCMS allows for highly complex storage of data.
+
+- Background Management
+Extremely simple backgrounds design for bucket, spreading it to all its pages for consistency and beauty.
+
+- User Systems
+Collaborate with ease across several authors through internal web, maximizing security. 
+
+- Administration
+Easy to use frontend to change the background.
 
 ![Writer Demo](demos/WriterDEMO.png)
 
