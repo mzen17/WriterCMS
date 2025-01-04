@@ -10,7 +10,7 @@ def create_user(user: fmodels.SaltedUser, session: Session):
     if session:
         if not session.query(models.User).filter_by(username=user.username).first():
             user = models.User(username=user.username, password=user.password, salt=user.salt,
-                                session="", session_exp=0)
+                                session="", session_exp=0, bio="This user has not updated their bio yet.", pfp="icon.jpg")
             session.add(user)
             session.commit()
             session.refresh(user)
@@ -34,6 +34,12 @@ def update_user(username: str, new_settings: fmodels.UserRequestSetting, session
         target_user = session.query(models.User).filter_by(username=username).first()
 
         if target_user:
+            if new_settings.bio != "":
+                target_user.bio = new_settings.bio
+            
+            if new_settings.pfp != "":
+                target_user.pfp = new_settings.pfp
+
             if new_settings.dictionary:
                 target_user.dictionary = new_settings.dictionary
             

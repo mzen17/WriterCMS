@@ -35,10 +35,11 @@ def get_settings(creds: fmodels.UserRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/users/update")
-def get_settings(creds: fmodels.UserRequestSetting, db: Session = Depends(get_db)):
-    if (functions.check_session(creds.username, creds.session, db)):
+def upd_settings(creds: fmodels.UserRequestSetting, db: Session = Depends(get_db)):
+    """Do not try to use this API manually."""
+    if (functions.check_session(creds.old_username, creds.session, db)):
 
-        return {"resp":crud.update_user(creds.username, creds, db)}
+        return {"resp":crud.update_user(creds.old_username, creds, db)}
 
     return {"resp":False}
 

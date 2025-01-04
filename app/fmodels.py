@@ -23,8 +23,12 @@ class UserRequest(BaseModel):
 
 class UserRequestSetting(BaseModel):
     """A request with session instead of password, for things like validating access"""
+    old_username: str
     username: str
     session: str
+    pfp: str
+    bio: str
+
     dictionary: Optional[list[str]] = None
     theme: Optional[bool] = None
 

@@ -13,6 +13,9 @@ class User(Base):
     session = Column(String)
     session_exp = Column(Integer)
 
+    # User customizable items
+    pfp = Column(String)
+    bio = Column(String)
     dictionary = Column(String)
     theme = Column(Boolean)
 
@@ -26,6 +29,9 @@ class Bucket(Base):
     owner_id = Column(Integer, ForeignKey("users.id"))
     bucket_owner_id = Column(Integer, ForeignKey("buckets.id"), nullable=True)
     visibility = Column(Boolean, unique=False, default=True, nullable=False)
+
+
+    # Custom bucket entries
 
     owner = relationship("User", back_populates="buckets")
     parent_bucket = relationship("Bucket", remote_side=[id])

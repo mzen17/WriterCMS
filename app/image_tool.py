@@ -18,14 +18,22 @@ class ImageManager:
         )
 
         self.s3 = s3
+        self.bucket = os.environ["AWS_BUCKET_NAME"]
     
     def retreve_image(self, image_name):
         presigned_url = self.s3.generate_presigned_url(
             ClientMethod='get_object',
-            Params={'Bucket': os.environ["AWS_BUCKET_NAME"], 'Key': image_name},
+            Params={'Bucket': self.bucket, 'Key': image_name},
             ExpiresIn=3600  # URL expires in 1hr
         )
         return presigned_url
+
+    def check_file_exists(self, file_key):
+        try:
+            self.s3.head_object(Bucket=self.bucket, Key=file_key)
+            return True  # File exists
+        except Exception as e:
+            return False  # File does not exist
 
     def upload_image(self, filepath):
         """Yeet an image into S3
@@ -38,7 +46,7 @@ class ImageManager:
         image_hash = hashlib.sha256(img_data).hexdigest()[:8]
         s3_key = f'{image_hash}{extension_match.group(0)}'  # You can change the extension based on the image format
 
-        self.s3.put_object(Bucket=os.environ["AWS_BUCKET_NAME"], Key=s3_key, Body=img_data, ContentType='image/jpeg')
+        self.s3.put_object(Bucket=self.bucket, Key=s3_key, Body=img_data, ContentType='image/jpeg')
 
         return s3_key
 

@@ -42,8 +42,9 @@ async def login_view(request: Request):
     """Login Page"""
     return templates.TemplateResponse("login.html",{"request": request})
 
+
 @app.post("/upload_img")
-async def upload_image(file: UploadFile = File(...)):
+async def upload_image(file: UploadFile):
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Invalid file type. Please upload an image.")
     
@@ -55,6 +56,7 @@ async def upload_image(file: UploadFile = File(...)):
         return {"succ":True, "message": "File uploaded successfully!", "filename":data}
     except Exception as e:
         return {"succ":False, "message": str(e)}
+
 
 @app.get("/buckets", response_class=HTMLResponse)
 async def buckets_view(request: Request):
@@ -73,9 +75,9 @@ async def pages_view(request: Request, bid: int, pid:int):
     """Return a page view for a particular page"""
     return templates.TemplateResponse("page.html",{"request": request, "id":bid, "pid":pid, "tinymce_url":os.environ["tinymce_url"], "back_url":"/buckets"})
 
+
 public_app = FastAPI()
 public_app.mount("/static", StaticFiles(directory="static"), name="static")
-
 
 # Public application
 # We use hydration to keep backend secure (the frontend should not make ANY api requests) 
@@ -95,8 +97,22 @@ async def global_home_view(request: Request, db: Session = Depends(get_db)):
 async def pub_buckets_view(request: Request, username: str, db: Session = Depends(get_db)):
     """Modified Buckets Page (lists users)"""
     user = usermanage.get_user_data(username, db)
+    print(user.pfp)
+
+    if ig.check_file_exists(user.pfp):
+
+        ex_url = ig.retreve_image(user.pfp)
+    else:
+        ex_url = ig.retreve_image("icon.jpg")
     buckets = bucketmanage.get_buckets(username, db, vis_filter=True)
-    return templates.TemplateResponse("public_profile.html",{"request": request, "username":username, "buckets":buckets})
+
+    return templates.TemplateResponse("public_profile.html",{
+        "request": request, 
+        "username":username, 
+        "bio":user.bio, 
+        "pfp":ex_url, 
+        "buckets":buckets
+    })
 
 
 @public_app.get("/b/{bucketid}", response_class=HTMLResponse)
