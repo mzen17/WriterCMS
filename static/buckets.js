@@ -23,7 +23,7 @@ async function update() {
     console.log(data)
 
     if(data["buckets"].length < 1) {
-        box.innerText += "\n\nYou have no buckets to display ."
+        box.innerText += "\n\nYou have no buckets to display."
 
     } else {
         var div = document.getElementById('status_box');

@@ -1,28 +1,38 @@
-{% extends "base.html" %}
+{% extends "twocolumn.html" %}
 {% block nav %}
 {% endblock nav %}
 
-{% block page %}
-<div style="margin:10px">
-
+{% block column1 %}
     <h2>Welcome to Page Processor!</h2>
-
     <div id="status_box" style="margin-bottom:20px;">
         <p id="status_text"></p>
     </div>
+    
+{% endblock column1 %}
+{% block column2 %}
+<form id="updateProfileForm">
+    <h3>Change Profile </h1>
+    <label style="display:inline">Profile Picture</label>
+    <input type="file" id="newpfp" style="display:block; margin-bottom:10px" />
 
-    <script src="/static/cookie.js"></script>
-    <script src="/static/home.js"></script>
-
-    <form id="updateProfileForm">
-        <h3>Change Profile </h1>
-        <label style="display:inline">Profile Picture</label>
-        <input type="file" id="newpfp" style="display:block; margin-bottom:10px" />
-
-        <label style="display:inline">Bio</label>
-        <textarea id="newbio" style="display:block; background-color:black; color:white; margin-bottom:30px"> </textarea>  
-        <button style="background-color:lightgreen; color:black; border-radius:10px; padding:2px">Save</button>
+    <label style="display:inline">Bio</label>
+    <textarea id="newbio" style="display:block; background-color:black; color:white; margin-bottom:30px"> </textarea>  
+    <button style="background-color:lightgreen; color:black; border-radius:10px; padding:2px">Save</button>
+</form>
+<div>
+    <form id="bk_create">
+        <h3>Create Bucket</h3>
+        <label for="bk_name">Name</label>
+        <input id="bk_name" type="text"/>
+        <button type="submit">Create</button>
     </form>
+    <p id="msg" style="color:red"></p>
 </div>
 
-{% endblock page %}
+{% endblock column2 %}
+{% block scripts %}
+<script src="/static/cookie.js"></script>
+<script src="/static/home.js"></script>
+<script src="/static/buckets.js"></script>
+
+{% endblock scripts %}

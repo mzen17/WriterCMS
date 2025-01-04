@@ -58,12 +58,6 @@ async def upload_image(file: UploadFile):
         return {"succ":False, "message": str(e)}
 
 
-@app.get("/buckets", response_class=HTMLResponse)
-async def buckets_view(request: Request):
-    """Return bucket view"""
-    return templates.TemplateResponse("buckets.html",{"request": request})
-
-
 @app.get("/bucket/{bid}", response_class=HTMLResponse)
 async def sbucket_view(request: Request, bid: int):
     """Return a page view for a single particular bucket"""

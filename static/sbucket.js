@@ -23,7 +23,7 @@ async function update() {
 
     if(!data["resp"]) {
         alert("This is an invalid bucket. Redirecting back.")
-        window.location.href = "/buckets"
+        window.location.href = "/"
     }
 
     title.value = data["bucket"].name
@@ -90,7 +90,7 @@ async function update() {
             console.log("NON NuLl bid?")
             window.location.href= linkpfx + del_bid
         } else {
-            if(typeof linkpfx == 'undefined') {linkpfx = "/buckets/"} else {linkpfx = "/web/" + un }
+            if(typeof linkpfx == 'undefined') {linkpfx = "/"} else {linkpfx = "/web/" + un }
             window.location.href = linkpfx
         }
     }

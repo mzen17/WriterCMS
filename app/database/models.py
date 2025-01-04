@@ -30,8 +30,10 @@ class Bucket(Base):
     bucket_owner_id = Column(Integer, ForeignKey("buckets.id"), nullable=True)
     visibility = Column(Boolean, unique=False, default=True, nullable=False)
 
-
     # Custom bucket entries
+    description = Column(String)
+    banner = Column(String)
+    background = Column(String)
 
     owner = relationship("User", back_populates="buckets")
     parent_bucket = relationship("Bucket", remote_side=[id])
