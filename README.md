@@ -52,20 +52,18 @@ Word/Docs
 - Peformance issues on those with individual pages. (not good for >300 pages)
 
 ## Current Status
-Currently in alpha. There may be security issues, and is not ready for public endpoints.
-
-Unsecure.
-
+Currently in beta. Public endpoint is secured, however, private endpoint is very unsecure for the following reasons:
 - Createusers endpoint can be spammed to flood database and prevent normal users (needs a rate limit)
 - Bucket and page endpoints can be flooded to waste storage (needs storage cap)
+- Uploads may be spammed.
 - Certain APIs may or may not be unsecure. None are documented, because any known would've been fixed, but be aware.
 
 Other problems
-
-- GUI is not in any good shape.
 - Many skeletons in the API.
 - Documententation of code subpar.
 - Word spelling suggestions are very slow and freeze webpage (currently issue with Typo.js)
+
+Production-ready deployment is doable, however, it is important to keep private endpoint inside an internal network that has no public access, where you know all the entities using it.
 
 ## Usage Notes
 Create a venv, install reqs.txt. Create a .env file, and place tinymce url into it. Input S3 credentials for image support.
