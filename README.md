@@ -5,21 +5,20 @@ StarCMS is a powerful CMS designed with simplicity in mind. It is ideal for blog
 
 ## Features
 - Automatic Hierachy
+
 Designed like a file system, StarCMS allows for highly complex storage of data.
 
 - Background Management
+
 Extremely simple backgrounds design for bucket, spreading it to all its pages for consistency and beauty.
 
 - User Systems
+
 Collaborate with ease across several authors through internal web, maximizing security. 
 
 - Administration
+
 Easy to use frontend to change the background.
-
-![Writer Demo](demos/WriterDEMO.png)
-
-*A picture of what the writer mode looks like.*
-
 ## Purpose
 This project's use case is for creating and managing any document that severely relies on paging while providing a streamlined workflow for publishing to the web.
 This particularly exists for the two following purposes:
