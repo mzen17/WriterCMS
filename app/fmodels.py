@@ -49,6 +49,11 @@ class BucketData(BaseModel):
     bucket_id: int
     visibility: bool
     bucket_owner_id: Optional[int] = None
+    
+    description: Optional[str] = None
+    background: Optional[str] = None
+    banner: Optional[str] = None
+
 
 
 class PageRequest(BaseModel):

@@ -84,17 +84,20 @@ async def global_home_view(request: Request, db: Session = Depends(get_db)):
     users = usermanage.retrieve_users(db)
     buckets = bucketmanage.git_all_pub_buckets(db)
 
-    return templates.TemplateResponse("public_home.html",{"request": request, "users":users, "buckets":buckets})
+    return templates.TemplateResponse("public_home.html",{
+        "request": request, 
+        "users":users, 
+        "background":ig.retreve_image("default.jpg"),
+
+        "buckets":buckets})
 
 
 @public_app.get("/u/{username}/", response_class=HTMLResponse)
 async def pub_buckets_view(request: Request, username: str, db: Session = Depends(get_db)):
     """Modified Buckets Page (lists users)"""
     user = usermanage.get_user_data(username, db)
-    print(user.pfp)
 
     if ig.check_file_exists(user.pfp):
-
         ex_url = ig.retreve_image(user.pfp)
     else:
         ex_url = ig.retreve_image("icon.jpg")
@@ -104,6 +107,7 @@ async def pub_buckets_view(request: Request, username: str, db: Session = Depend
         "request": request, 
         "username":username, 
         "bio":user.bio, 
+        "background":ig.retreve_image("default.jpg"),
         "pfp":ex_url, 
         "buckets":buckets
     })
@@ -119,12 +123,21 @@ async def pub_sbucket_view(request: Request, bucketid: int, db: Session = Depend
     buckets = bucketmanage.get_bucket_buckets(bucketid, db, vis_filter=True)
     pages = bucketmanage.get_bucket_pages(bucketid, db, True)
 
+
+    if ig.check_file_exists(bucket.background):
+        ex_url = ig.retreve_image(bucket.background)
+    else:
+        ex_url = ig.retreve_image("default.jpg")
+
+
     return templates.TemplateResponse("public_bucket.html",{
         "request": request, 
         "name":bucket.name, 
         "pages":pages, 
         "buckets":buckets,
-        "backurl": ("/" if bucket.bucket_owner_id is None else f"b/{bucket.bucket_owner_id}")
+        "description":bucket.description,
+        "background":ex_url,
+        "backurl": ("/" if bucket.bucket_owner_id is None else f"/b/{bucket.bucket_owner_id}")
         })
 
 from app.pages import crud
@@ -140,7 +153,17 @@ async def pub_page_view(request: Request, pageid: int, db: Session = Depends(get
         "pg_cnt": "Please contact author to make this page public.",
         "pageid": pageid, 
     }
+    # retrieve page list & order
     page = crud.get_page(-1, pageid, db)
+
+    # retrieve background
+    pic = bucketmanage.get_bucket(page.owner_id, db).background
+    if ig.check_file_exists(pic):
+        data["background"] = ig.retreve_image(pic)
+    else:
+        data["background"] = ig.retreve_image("default.jpg")
+
+
     if page and page.public:
             data["tbURL"] =  f"/b/{page.owner_id}/"
 

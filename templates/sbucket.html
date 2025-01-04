@@ -3,20 +3,36 @@
 {% block header %}
 <h2 id="bk_title"></h2>
 {% endblock header %}
-
 {% block column1 %}
 <div>
-    <input style="height:40px; width:600px; font-size:larger; padding:3px; margin-bottom:10px; display:inline-block" id="buck_name"></input><br/>
-    <label for="vis">Public</label>
-    <input type="checkbox" id="vis" style="margin-bottom:10px"/><br/>
-    <button onclick="save()">Update Bucket</button>
-    <button onclick="del()">Delete Bucket</button>
+    <h1 style="width:600px; font-size:larger; padding:3px; display:inline-block; margin-bottom:3px" id="head"></h1>
+    <p id="des" style="margin-top:2px; color:darkgray"></p>
 </div>
 <div id="status_box">
 </div>
 {% endblock column1 %}
 
 {% block column2 %}
+<div id="updateProfilediv">
+    <h3>Update Bucket </h1>
+    <label>Name</label>
+    <input id="buck_name" style="margin-bottom:10px"></input><br/>
+    <label for="vis">Public</label>
+    <input type="checkbox" id="vis" style="margin-bottom:10px"/><br/>
+    
+    <label style="display:inline">Bucket Banner</label>
+    <input type="file" id="newbanner" style="display:block; margin-bottom:10px" />
+    
+    <label style="display:inline">Bucket Background</label>
+    <input type="file" id="newbg" style="display:block; margin-bottom:10px" />
+
+    <label style="display:inline">Description</label>
+    <textarea id="newdes" style="display:block; background-color:black; color:white; margin-bottom:30px"></textarea>  
+    <button style="background-color:lightgreen; color:black; border-radius:10px; padding:2px" onclick="save()">Update Bucket</button>
+    <button onclick="del()">Delete Bucket</button>
+
+</div>
+
 <div>
     <form id="pg_create">
         <h3>Create Page</h3>

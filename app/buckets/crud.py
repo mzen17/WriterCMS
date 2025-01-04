@@ -9,7 +9,14 @@ def create_bucket(bk: fmodels.BucketData, session: Session):
     if session:
         user = session.query(models.User).filter_by(username=bk.username).first()
         if user:
-            bucket = models.Bucket(name=bk.bucket_name, owner_id=user.id)
+            bucket = models.Bucket(
+                name=bk.bucket_name, 
+                owner_id=user.id,
+                description="",
+                background = "",
+                banner=""
+
+            )
             if bk.bucket_owner_id:
                 bucket.bucket_owner_id = bk.bucket_owner_id
             
@@ -25,8 +32,21 @@ def update_bucket(bk: fmodels.BucketData, session: Session):
     if session:
         target_bucket = session.query(models.Bucket).filter_by(id=bk.bucket_id).first()
         if target_bucket:
-            target_bucket.name = bk.bucket_name
+            if bk.bucket_name != "":
+                target_bucket.name = bk.bucket_name
+
+
             target_bucket.visibility = bk.visibility
+
+            if bk.background and bk.background != "":
+                target_bucket.background = bk.background
+            
+            if bk.description and bk.description != "":
+                target_bucket.description = bk.description
+            
+            if bk.banner and bk.banner != "":
+                target_bucket.banner = bk.banner
+
             session.commit()
             return True
     return False

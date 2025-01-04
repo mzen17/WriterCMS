@@ -1,21 +1,37 @@
-{% extends "base.html" %}
-{% block nav %}
-{% endblock nav %}
+{% extends "public_view.html" %}
 
-{% block page %}
+
+{% block content %}
+<div style="position:fixed; width:100vw; height:100vh; z-index: -1000;">
+    <img src="{{background}}"  style="width:100vw; height:100vh; object-fit: cover;">
+</div>
 <div style="margin:10px">
     <h2>{{name}}</h2>
+    <p style="color:darkgray">{{description}}</p>
+    <hr>
     {% for item in buckets %}
     <li style="margin-bottom:5px; list-style-type: none">
-        <a href="/b/{{item.id}}/" alt="{{item.name}}'s content.">{{ item.name }}</a>
+        <a href="/b/{{item.id}}/" alt="{{item.name}}'s content."><svg width="20" height="16" viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 20 C5 15, 10 10, 15 10 H40 L45 15 H85 C90 15, 95 20, 95 25 V65 C95 70, 90 75, 85 75 H15 C10 75, 5 70, 5 65 Z" 
+                  fill="#f4b400" stroke="#e69a00" stroke-width="2"/>
+          </svg>
+          {{ item.name }}</a>
     </li>
 {% endfor %}
 {% for item in pages %}
 <li style="margin-bottom:5px; list-style-type: none">
-    <a href="/p/{{item.id}}/" alt="{{item.name}}'s profile.">{{ item.name }}</a>
+    <a href="/p/{{item.id}}/" alt="{{item.name}}'s profile."><svg width="20" height="20" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+        <rect x="10" y="10" width="80" height="100" rx="5" ry="5" fill="#ffffff" stroke="#000000" stroke-width="2"/>
+        <path d="M70 10 L90 30 L70 30 Z" fill="#cccccc" stroke="#000000" stroke-width="2"/>
+        <line x1="20" y1="40" x2="80" y2="40" stroke="#000000" stroke-width="2"/>
+        <line x1="20" y1="50" x2="80" y2="50" stroke="#000000" stroke-width="2"/>
+        <line x1="20" y1="60" x2="80" y2="60" stroke="#000000" stroke-width="2"/>
+        <line x1="20" y1="70" x2="60" y2="70" stroke="#000000" stroke-width="2"/>
+      </svg>
+      {{ item.name }}</a>
 </li>
 {% endfor %}
 <hr>
 <a href="{{ backurl }}">Return Up.</a>
 </div>
-{% endblock page %}
+{% endblock content %}

@@ -26,7 +26,12 @@ async function update() {
         window.location.href = "/"
     }
 
-    title.value = data["bucket"].name
+    let head = document.getElementById("head")
+    let des = document.getElementById("des")
+    console.log(data["bucket"].name)
+    head.textContent = data["bucket"].name
+    des.textContent = data["bucket"].description
+
     vis = data["bucket"].visibility
 
     chkbox = document.getElementById("vis")
@@ -36,7 +41,7 @@ async function update() {
     var div = document.getElementById('status_box');
 
     var note = document.createElement("h4")
-    note.innerText = "This bucket's pages."
+    note.innerText = "Content:"
 
     div.appendChild(note)
 
@@ -188,12 +193,52 @@ async function submit_cbucket(event) {
 }
 form2.addEventListener('submit', submit_cbucket);
 
+async function get_img(file_field_id) {
+    const formData = new FormData();
+
+    const fileInput = document.getElementById(file_field_id);
+    const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/gif", "image/webp"]; // Only images
+
+    unit_str = ""
+    if (fileInput.files.length == 1 && allowedTypes.includes(fileInput.files[0].type)) {
+        formData.append("file", fileInput.files[0]);
+
+        const response = await fetch("/upload_img", {
+            method: "POST",
+            body: formData,
+        });
+
+        data = await response.json()
+        console.log(data)
+        pfp_str=data["filename"]
+
+    } else {
+        alert("To update banner/background, put a IMG file and only 1 file.")
+        pfp_str = ""
+    }
+    return pfp_str
+}
+
 // Bucket Update
 async function save() {
     var bckt = document.getElementById('buck_name').value
     var chkbox = document.getElementById('vis').checked
+    var description = document.getElementById('newdes').value
+    var bannerIMG = await get_img("newbanner")
+    var bgIMG = await get_img("newbg")
+    console.log(bannerIMG)
 
-    data = {"username":un, "session":sk, "bucket_name":bckt,"bucket_id":id, "visibility":chkbox}
+    data = {
+        "username":un, 
+        "session":sk, 
+        "bucket_name":bckt,
+        "bucket_id":id, 
+        "visibility":chkbox,
+
+        "description": description,
+        "banner":bannerIMG,
+        "background":bgIMG
+    }
 
     send = {
         method: 'POST',

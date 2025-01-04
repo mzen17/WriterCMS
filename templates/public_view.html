@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        {% block head %}
+            <title>StarCMS</title>
+        {% endblock head %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+      body {
+        font-family: 'Open Sans';
+      }
+
+      h1 {
+        font-weight: 400;
+      }
+      h2 {
+        font-weight: 300;
+      }
+
+      a {
+        color: #0072f5;
+        text-decoration: none;
+      }
+
+      p {
+        font-weight: 400;
+        line-height: 1.5;
+        white-space: pre-wrap;
+      }
+
+      #footer {
+        width:100vw;
+        min-height:50px;
+        display: flex;
+        border-bottom: 5px solid #0072f5;
+      } 
+      
+    </style>
+
+  </head>
+  <body>
+    <div style="
+      min-width:100vw; 
+      min-height:100vh;
+      display:flex; 
+      justify-content:center;
+      background-size:cover; 
+      background-image:url('{{background}}');
+      background-attachment:fixed;
+      background-color:white;
+    ">
+    
+    <div style="width:50%; min-width:800px; min-height:60vh; background-color:#19171f; padding:30px; margin:10px; border-radius:5px">
+
+    {% block content %}
+      <!-- default content text (typically empty) -->
+    {% endblock %}
+    </div>
+  </div>
+  </body>
+</html>
