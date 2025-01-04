@@ -1,5 +1,5 @@
 # Project
-![image](https://github.com/user-attachments/assets/753305a7-4f83-457a-98d8-4310a4c1e6ce)
+![image](https://github.com/user-attachments/assets/c523dfe1-901e-4e8a-85bf-214a37c0438d)
 
 StarCMS is a powerful CMS designed with simplicity in mind. It is ideal for bloggers, novel writers, and other various end-users as it is designed to be extremely simple yet with power features.
 
