@@ -1,4 +1,6 @@
 # Project
+![image](https://github.com/user-attachments/assets/753305a7-4f83-457a-98d8-4310a4c1e6ce)
+
 StarCMS is a web-based word processor with a very niche use case.
 
 ![Writer Demo](demos/WriterDEMO.png)
