@@ -20,7 +20,7 @@
         </div>
     </div>
 
-    <textarea id="pg_content" spellcheck="true"></textarea>
+    <textarea id="pg_content"></textarea>
 </div>
 </div>
 {% endblock page %}
@@ -42,7 +42,6 @@
 <script src="{{ tinymce_url }}"></script>
 <script src="/static/cookie.js"></script>
 <script src="/static/forcelogin.js"></script>
-<script src="/static/typo.js"></script>
 <script src="/static/page.js"></script>
 <script src="/static/spellchecker.js"></script>
 
@@ -63,7 +62,7 @@
             view: { title: 'View', items: 'code revisionhistory | visualaid visualchars visualblocks | spellchecker | preview fullscreen | showcomments' },
             insert: { title: 'Insert', items: 'image link media addcomment pageembed codesample inserttable | math | charmap emoticons hr | pagebreak nonbreaking anchor tableofcontents | insertdatetime' },
             format: { title: 'Format', items: 'bold italic underline strikethrough superscript subscript codeformat | styles blocks fontfamily fontsize align lineheight | forecolor backcolor | language | removeformat' },
-            tools: { title: 'Tools', items: ' spell-check-fast spell-check spell-single add-word | wordcount clear-annotations | code ' },
+            tools: { title: 'Tools', items: ' enable-spell-check disable-spell-check add-word | wordcount clear-annotations | code ' },
             table: { title: 'Table', items: 'inserttable | cell row column | advtablesort | tableprops deletetable' },
             help: { title: 'Help', items: 'help' }
         },
