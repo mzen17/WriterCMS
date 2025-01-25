@@ -4,7 +4,7 @@ import os
 import shutil
 
 from fastapi import FastAPI, Request, Depends, UploadFile, File, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
@@ -53,7 +53,30 @@ async def upload_image(file: UploadFile):
             shutil.copyfileobj(file.file, buffer)
         
         data = ig.upload_image(f"/tmp/{file.filename}")
-        return {"succ":True, "message": "File uploaded successfully!", "filename":data}
+        return {"succ":True, "message": "File uploaded successfully!", "filename":data, "location":data}
+    except Exception as e:
+        return {"succ":False, "message": str(e)}
+
+@app.get("/dig_img/{img}")
+async def dig_img(img:str, db: Session = Depends(get_db)):
+    image= ig.get_image_crud(db, img)
+    if image != "F":
+        return RedirectResponse(url=image)
+    else:
+        return {"status":"F"}
+
+
+@app.post("/upload_db_img/{pg_key}/")
+async def upload_public_private_image(file: UploadFile, pg_key: int, db: Session = Depends(get_db)):
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Invalid file type. Please upload an image.")
+    
+    try:
+        with open(f"/tmp/{file.filename}", "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        data = ig.image_crud(db, filepath = f"/tmp/{file.filename}", pg_id = pg_key)
+        return {"succ":True, "message": "File uploaded successfully!", "filename":"/dig_img/" + data, "location":data}
     except Exception as e:
         return {"succ":False, "message": str(e)}
 
@@ -90,6 +113,14 @@ async def global_home_view(request: Request, db: Session = Depends(get_db)):
         "background":ig.retreve_image("default.jpg"),
 
         "buckets":buckets})
+
+@public_app.get("/dig_img/{img}")
+async def dig_img(img:str, db: Session = Depends(get_db)):
+    image= ig.get_image_crud(db, img)
+    if image != "F":
+        return RedirectResponse(url=image)
+    else:
+        return {"status":"F"}
 
 
 @public_app.get("/u/{username}/", response_class=HTMLResponse)

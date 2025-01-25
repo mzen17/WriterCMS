@@ -46,68 +46,7 @@ async function update() {
     };
 }
 
-// A function for view-only page
-async function stick_text_to_normal_box() {
-    let pagedata = {'username':un, 'session':sk, 'bucketid':bid, 'pageid':pid}
-    send = {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(pagedata)
-    }
-    response = await fetch("/pages/get", send)
-    data = await response.json()
-    console.log(data)
-
-    head = document.getElementById("pg_title")
-    head.innerHTML = data["page"].title
-    var replacedStr = data["page"].description.replace(/\[\@\@\#%\]/g, "\"");
-    
-    document.title = "p | " + data["page"].title
-
-    pagedata = document.getElementById("pg_content")
-    pagedata.innerHTML = replacedStr
-
-    backfrontAreas = document.getElementsByClassName("backfront")
-    function appendBackfront(div) {
-        console.log(data["nav"].front)
-        username = get_username()
-
-        if ("back" in data["nav"]) {            
-            var link = document.createElement("a");
-            link.innerHTML = "Previous Page";        
-            link.style="margin-right:20px"
-            link.href = "/web/" + get_username() + "/bucket/" + bid + "/page/" + data["nav"].back
-            div.append(link)
-        }
-
-        var link = document.createElement("a");
-        link.innerHTML = "Table of Contents";
-        link.style = "margin-right:20px";
-        link.href = "/web/" + get_username() + "/bucket/" + bid;
-        
-        div.append(link);
-        
-             
-        if ("front" in data["nav"]) {
-            
-            var link = document.createElement("a");
-            link.innerHTML = "Next Page";
-            
-            link.href = ("/web/" + get_username() + "/bucket/" + bid + "/page/" + data["nav"].front)         
-            div.append(link)
-        }
-
-    }
-
-    for(var area of backfrontAreas) {
-        appendBackfront(area)
-    }    
-}
-
 async function save() {
-    clearAnnotations()
 
     head = document.getElementById("pg_title").value
     body = tinymce.activeEditor.getContent({format : 'raw'});
