@@ -40,7 +40,6 @@ class Bucket(Base):
     pages = relationship("Page", back_populates="owner")
 
 
-
 class Page(Base):
     __tablename__ = "pages"
 
@@ -52,3 +51,11 @@ class Page(Base):
 
     owner_id = Column(Integer, ForeignKey("buckets.id"))
     owner = relationship("Bucket", back_populates="pages")
+
+class Images(Base):
+    __tablename__ = "images"
+
+    id = Column(Integer, primary_key=True)
+    file_name = Column(String)
+    size = Column(Integer)
+    page_id = Column(Integer, ForeignKey('pages.id'))

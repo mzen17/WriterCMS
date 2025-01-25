@@ -62,7 +62,7 @@
             view: { title: 'View', items: 'code revisionhistory | visualaid visualchars visualblocks | spellchecker | preview fullscreen | showcomments' },
             insert: { title: 'Insert', items: 'image link media addcomment pageembed codesample inserttable | math | charmap emoticons hr | pagebreak nonbreaking anchor tableofcontents | insertdatetime' },
             format: { title: 'Format', items: 'bold italic underline strikethrough superscript subscript codeformat | styles blocks fontfamily fontsize align lineheight | forecolor backcolor | language | removeformat' },
-            tools: { title: 'Tools', items: ' enable-spell-check disable-spell-check add-word | wordcount clear-annotations | code ' },
+            tools: { title: 'Tools', items: ' enable-spell-check disable-spell-check add-word | image wordcount | code ' },
             table: { title: 'Table', items: 'inserttable | cell row column | advtablesort | tableprops deletetable' },
             help: { title: 'Help', items: 'help' }
         },
@@ -85,7 +85,12 @@
                              Verdana=verdana,geneva;\
                              Webdings=webdings;\
                              Wingdings=wingdings,zapf dingbats",
-        plugins: 'wordcount code spellchecker',
+        plugins: 'wordcount code spellchecker image',
+        image_uploadtab: true,
+        images_upload_base_path: '/dig_img/',
+        images_upload_url: "/upload_db_img/{{ pid }}/",
+        
+
         setup: function (editor) {
             let toggleState = false;
 
@@ -109,5 +114,6 @@
                 update();
             })
         }});
+
 </script>      
 {% endblock scripts %}
