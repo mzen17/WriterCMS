@@ -4,21 +4,11 @@
 StarCMS is a powerful CMS designed with simplicity in mind. It is ideal for bloggers, novel writers, and other various end-users as it is designed to be extremely simple yet with power features.
 
 ## Features
-- Automatic Hierachy
+- Automatic Hierachy | Designed like a file system, StarCMS allows for highly complex storage of data.
+- Background Management | Simple backgrounds design for bucket, spreading it to all its pages for consistency and beauty.
+- User Systems | Collaborate with ease across several authors through internal web, maximizing security. 
+- Administration | Easy to use frontend to change the background.
 
-Designed like a file system, StarCMS allows for highly complex storage of data.
-
-- Background Management
-
-Extremely simple backgrounds design for bucket, spreading it to all its pages for consistency and beauty.
-
-- User Systems
-
-Collaborate with ease across several authors through internal web, maximizing security. 
-
-- Administration
-
-Easy to use frontend to change the background.
 ## Purpose
 This project's use case is for creating and managing any document that severely relies on paging while providing a streamlined workflow for publishing to the web.
 This particularly exists for the two following purposes:
@@ -28,6 +18,7 @@ This particularly exists for the two following purposes:
 ### What current software exist for such?
 - Github Gists
 - Wordpress
+- Medium
 - Blog post pages
 - OneNote
 - Obsidian
@@ -36,6 +27,9 @@ This particularly exists for the two following purposes:
 ### Benefits compared to...
 Gists
 - Significantly more powerful editor
+- Bucket filesystem for complex hierarchies of blogs
+
+Medium
 - Bucket filesystem for complex hierarchies of blogs
 
 Wordpress
@@ -52,16 +46,11 @@ Word/Docs
 - Peformance issues on those with individual pages. (not good for >300 pages)
 
 ## Current Status
-Currently in beta. Public endpoint is secured, however, private endpoint is very unsecure for the following reasons:
-- Createusers endpoint can be spammed to flood database and prevent normal users (needs a rate limit)
-- Bucket and page endpoints can be flooded to waste storage (needs storage cap)
-- Uploads may be spammed.
-- Certain APIs may or may not be unsecure. None are documented, because any known would've been fixed, but be aware.
+Currently in beta. Public endpoint is secured, however, private endpoint is very unsecure for the following reasons. [Details can be found here.](https://github.com/mzen17/StarCMS/wiki/Listed-Vulnerabilities)
 
 Other problems
 - Many skeletons in the API.
 - Documententation of code subpar.
-- Word spelling suggestions are very slow and freeze webpage (currently issue with Typo.js)
 
 Production-ready deployment is doable, however, it is important to keep private endpoint inside an internal network that has no public access, where you know all the entities using it.
 
