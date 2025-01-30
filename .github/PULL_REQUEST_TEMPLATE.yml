@@ -1,0 +1,14 @@
+pr_template:
+  description: "Describe the purpose of this pull request."
+  related_issues: "Reference any related issues or tasks"
+  local_testing_steps:
+    - "Document the steps to test this PR and how reviewers can see what changed. E.g:"
+    - "1. [First step]"
+    - "2. [Second step]"
+    - "3. [Additional steps as needed]"
+  checklist:
+    - "Documentation created/updated via this PR if new features"
+    - "Tests added for this feature/bug or explain why they are not relevant, and they all pass."
+    - "Conforms to code style (linter) / readability"
+    - "If this pull request makes a change to database schema, it is noted and documented what changes."
+  extra_information: "E.g, performance notes, screenshots, etc"
