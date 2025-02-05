@@ -14,8 +14,8 @@ def create_bucket(bk: fmodels.BucketData, session: Session):
                 owner_id=user.id,
                 description="",
                 background = "",
-                banner=""
-
+                banner="",
+                tags="",
             )
             if bk.bucket_owner_id:
                 bucket.bucket_owner_id = bk.bucket_owner_id
@@ -35,6 +35,8 @@ def update_bucket(bk: fmodels.BucketData, session: Session):
             if bk.bucket_name != "":
                 target_bucket.name = bk.bucket_name
 
+            if bk.tags and bk.tags != "":
+                target_bucket.tags = bk.tags
 
             target_bucket.visibility = bk.visibility
 
@@ -141,6 +143,6 @@ def git_all_pub_buckets(session: Session):
     pile = []
 
     for bucket in list_of_buckets:
-        pile.append({"name":bucket.name, "id":bucket.id})
+        pile.append({"name":bucket.name, "id":bucket.id, "tags":bucket.tags})
     
     return pile

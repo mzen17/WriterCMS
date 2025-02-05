@@ -29,6 +29,7 @@ class Bucket(Base):
     owner_id = Column(Integer, ForeignKey("users.id"))
     bucket_owner_id = Column(Integer, ForeignKey("buckets.id"), nullable=True)
     visibility = Column(Boolean, unique=False, default=True, nullable=False)
+    tags = Column(String, default="")
 
     # Custom bucket entries
     description = Column(String)

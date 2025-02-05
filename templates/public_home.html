@@ -1,15 +1,35 @@
 {% extends "public_view.html" %}
 {% block content %}
+    <script>
+        function handleCheckboxChange() {
+            let check = document.getElementById("chkbox").checked
+
+            document.querySelectorAll(".general").forEach((elem) => {
+                if (check) {
+                    elem.style = "display: none;"
+                } else {
+                    elem.style = "margin-bottom:5px; list-style-type: none"
+                }
+            })
+        }
+    </script>
+
     Welcome to the main site!
     <div style="margin-bottom:30px">
         <h2>Popular</h2>
+        Academic <input id="chkbox" type="checkbox" style="margin-bottom:20px" onchange="handleCheckboxChange()" autocomplete="off" checked />
         <div>
         {% for item in buckets %}
-            <li style="margin-bottom:5px; list-style-type: none">
-                <a href="/b/{{item.id}}/" alt="{{item.name}}'s profile.">{{ item.name }}</a>
-            </li>
+            {% if item.tags == "general" %}
+                <li style="display: none" class="{{ item.tags }}">
+                    <a href="/b/{{ item.id }}/" alt="{{ item.name }}'s profile.">{{ item.name }}</a>
+                </li>
+            {% else %}
+                <li style="margin-bottom:5px; list-style-type: none" class="{{ item.tags }}">
+                    <a href="/b/{{ item.id }}/" alt="{{ item.name }}'s profile.">{{ item.name }}</a>
+                </li>
+            {% endif %}
         {% endfor %}
-
 
             <h2>Users</h2>
             <div>

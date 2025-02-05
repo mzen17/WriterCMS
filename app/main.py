@@ -82,15 +82,25 @@ async def upload_public_private_image(file: UploadFile, pg_key: int, db: Session
 
 
 @app.get("/bucket/{bid}", response_class=HTMLResponse)
-async def sbucket_view(request: Request, bid: int):
+async def bucket_view(request: Request, bid: int):
     """Return a page view for a single particular bucket"""
-    return templates.TemplateResponse("sbucket.html",{"request": request, "id":bid, "back_url":"/buckets"})
+    return templates.TemplateResponse("bucket.html",{
+        "request": request, 
+        "id":bid, \
+        "back_url":"/buckets"}
+    )
 
 
 @app.get("/bucket/{bid}/page/{pid}", response_class=HTMLResponse)
 async def pages_view(request: Request, bid: int, pid:int):
     """Return a page view for a particular page"""
-    return templates.TemplateResponse("page.html",{"request": request, "id":bid, "pid":pid, "tinymce_url":os.environ["tinymce_url"], "back_url":"/buckets"})
+    return templates.TemplateResponse("page.html",{
+        "request": request, 
+        "id":bid, 
+        "pid":pid, 
+        "tinymce_url":os.environ["tinymce_url"], 
+        "back_url":"/buckets"}
+    )
 
 
 public_app = FastAPI()
