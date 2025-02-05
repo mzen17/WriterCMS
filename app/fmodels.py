@@ -53,7 +53,7 @@ class BucketData(BaseModel):
     description: Optional[str] = None
     background: Optional[str] = None
     banner: Optional[str] = None
-
+    tags: Optional[str] = None
 
 
 class PageRequest(BaseModel):

@@ -223,6 +223,8 @@ async function get_img(file_field_id) {
 async function save() {
     var bckt = document.getElementById('buck_name').value
     var chkbox = document.getElementById('vis').checked
+    var tags = document.getElementById('bk_tags').value
+
     var description = document.getElementById('newdes').value
     var bannerIMG = await get_img("newbanner")
     var bgIMG = await get_img("newbg")
@@ -237,7 +239,8 @@ async function save() {
 
         "description": description,
         "banner":bannerIMG,
-        "background":bgIMG
+        "background":bgIMG,
+        "tags":tags,
     }
 
     send = {
