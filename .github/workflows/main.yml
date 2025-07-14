@@ -20,6 +20,9 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        ${{ secrets.SSH_PRIVATE_KEY }}
+        ${{ secrets.SSHHOSTKEY }}
 
     - name: Set up SSH key and Known Hosts
       run: |
