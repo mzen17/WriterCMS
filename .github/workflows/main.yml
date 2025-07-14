@@ -14,15 +14,12 @@ jobs:
     env:
       SSHIP: ${{ vars.SSHIP }}       # Host IP address or hostname
       SSHUSER: ${{ vars.SSHUSER }}   # SSH username
-      SSHPASS: ${{ secrets.SSH_PRIVATE_KEY }} # SSH private key (store securely as a secret!)
+      SSHPASS: ${{ secrets.SSH_PRIVATE_KEY }}
       SSH_HOST_KEY: ${{ secrets.SSHHOSTKEY }} # Pre-defined SSH host key (store securely as a secret!)
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      with:
-        ${{ secrets.SSH_PRIVATE_KEY }}
-        ${{ secrets.SSHHOSTKEY }}
 
     - name: Set up SSH key and Known Hosts
       run: |
@@ -31,7 +28,7 @@ jobs:
         chmod 700 ~/.ssh
 
         # Write the SSH private key to a file
-        printf "%s" "${{ env.SSH_PRIVATE_KEY_BASE64 }}" | base64 -d > ~/.ssh/id_rsa
+        printf "%s" "${{ env.SSHPASS }}" | base64 -d > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
 
         # Add the provided SSHHOSTKEY to known_hosts
