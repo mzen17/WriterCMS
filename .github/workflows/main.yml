@@ -1,46 +1,44 @@
-name: Deploy StarCMS via SSH
+name: Deploy StarCMS via SSH Key (with pre-defined Host Key)
 
 on:
   # This workflow can be triggered manually from the GitHub Actions UI.
-  # This is generally safer for deployments than triggering on every push.
   workflow_dispatch:
 
 jobs:
   deploy:
-    # Specify that this job should run on a self-hosted runner.
     runs-on: self-hosted
 
-    # Define environment variables for SSH credentials.
-    # It is HIGHLY recommended to store these as GitHub Secrets
-    # (e.g., SSH_HOST, SSH_USERNAME, SSH_PASSWORD)
-    # and reference them like ${{ secrets.SSH_HOST }} for security.
     env:
       SSHIP: ${{ vars.SSHIP }}       # Host IP address or hostname
       SSHUSER: ${{ vars.SSHUSER }}   # SSH username
-      SSHPASS: ${{ secrets.SSHPASS }} # SSH password (store securely as a secret!)
+      SSHPASS: ${{ secrets.SSH_PRIVATE_KEY }} # SSH private key (store securely as a secret!)
+      SSH_HOST_KEY: ${{ secrets.SSHHOSTKEY }} # Pre-defined SSH host key (store securely as a secret!)
 
     steps:
     - name: Checkout repository
-      # This step is necessary to get your repository's code onto the runner,
-      # which might be needed for other steps, though not strictly for this SSH command.
       uses: actions/checkout@v4
 
-    - name: Install sshpass (if not already present on self-hosted runner)
-      # sshpass is used to provide the password non-interactively to ssh.
-      # This step assumes a Debian/Ubuntu-like system. Adjust for other OS.
+    - name: Set up SSH key and Known Hosts
       run: |
-        sudo apt-get update
-        sudo apt-get install -y sshpass
+        # Ensure the .ssh directory exists with correct permissions
+        mkdir -p ~/.ssh
+        chmod 700 ~/.ssh
 
+        # Write the SSH private key to a file
+        echo "${{ env.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+
+        # Add the provided SSHHOSTKEY to known_hosts
+        # This replaces the ssh-keyscan command for added security and reliability.
+        echo "${{ env.SSHHOSTKEY }}" >> ~/.ssh/known_hosts
+        chmod 644 ~/.ssh/known_hosts
+      # No SSH_AUTH_SOCK needed here if not using ssh-agent for this step.
+      
     - name: Deploy via SSH
-      # Use sshpass to provide the password and then execute commands on the remote machine.
-      # The -o StrictHostKeyChecking=no and -o UserKnownHostsFile=/dev/null
-      # are used to bypass host key checking, which is generally NOT recommended
-      # for production environments due to security risks (Man-in-the-Middle attacks).
-      # For better security, pre-add the host key to the runner's known_hosts file,
-      # or use SSH keys instead of passwords.
       run: |
-        sshpass -p "${{ env.SSHPASS }}" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+        # Use ssh directly with the generated id_rsa key
+        # StrictHostKeyChecking=yes is now enforced because known_hosts is populated
+        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts \
         "${{ env.SSHUSER }}"@"${{ env.SSHIP }}" << 'EOF'
           # Navigate to the application directory
           cd /home/page-manager/StarCMS
@@ -59,6 +57,3 @@ jobs:
 
           echo "Deployment complete."
         EOF
-      # The 'EOF' marker ensures that all commands between the two 'EOF's are
-      # executed on the remote server. The single quotes around 'EOF' prevent
-      # shell variable expansion on the local runner before SSHing.
