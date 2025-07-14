@@ -28,7 +28,7 @@ jobs:
         chmod 700 ~/.ssh
 
         # Write the SSH private key to a file
-        echo "${{ env.SSH_PRIVATE_KEY_BASE64 }}" | base64 -d > ~/.ssh/id_rsa
+        printf "%s" "${{ env.SSH_PRIVATE_KEY_BASE64 }}" | base64 -d > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
 
         # Add the provided SSHHOSTKEY to known_hosts
