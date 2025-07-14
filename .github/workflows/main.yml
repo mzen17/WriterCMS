@@ -38,7 +38,7 @@ jobs:
       run: |
         # Use ssh directly with the generated id_rsa key
         # StrictHostKeyChecking=yes is now enforced because known_hosts is populated
-        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts \
+        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no
         "${{ env.SSHUSER }}"@"${{ env.SSHIP }}" << 'EOF'
           # Navigate to the application directory
           cd /home/page-manager/StarCMS
