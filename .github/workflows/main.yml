@@ -1,7 +1,10 @@
 name: Deploy StarCMS via SSH Key (with pre-defined Host Key)
 
 on:
-  # This workflow can be triggered manually from the GitHub Actions UI.
+  push:
+    branches:
+      - main
+  # You can keep workflow_dispatch if you still want the option to trigger manually
   workflow_dispatch:
 
 jobs:
@@ -38,7 +41,7 @@ jobs:
       run: |
         # Use ssh directly with the generated id_rsa key
         # StrictHostKeyChecking=yes is now enforced because known_hosts is populated
-        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no
+        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
         "${{ env.SSHUSER }}"@"${{ env.SSHIP }}" << 'EOF'
           # Navigate to the application directory
           cd /home/page-manager/StarCMS
