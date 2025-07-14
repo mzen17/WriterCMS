@@ -8,3 +8,5 @@ psycopg2-binary
 httpx
 python-dotenv
 boto3
+uvicorn
+python-multipart

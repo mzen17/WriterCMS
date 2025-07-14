@@ -36,13 +36,26 @@
         display: flex;
         border-bottom: 5px solid #0072f5;
       } 
+
+      #content-container {
+        width: 100%;
+        max-width: 100%;
+      }
+
+      /* Responsive design for larger screens */
+      @media screen and (min-width: 768px) {
+        #content-container {
+          width: 50%;
+          min-width: 800px;
+        }
+      } 
       
     </style>
 
   </head>
   <body>
     <div style="
-      min-width:100vw; 
+      width:100%; 
       min-height:100vh;
       display:flex; 
       justify-content:center;
@@ -52,7 +65,7 @@
       background-color:white;
     ">
     
-    <div style="width:50%; min-width:800px; min-height:60vh; background-color:#19171f; padding:30px; margin:10px; border-radius:5px">
+    <div id="content-container" style="min-height:60vh; background-color:#19171f; padding:30px; margin:10px; border-radius:5px">
 
     {% block content %}
       <!-- default content text (typically empty) -->
