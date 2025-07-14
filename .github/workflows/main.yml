@@ -14,7 +14,7 @@ jobs:
     env:
       SSHIP: ${{ vars.SSHIP }}       # Host IP address or hostname
       SSHUSER: ${{ vars.SSHUSER }}   # SSH username
-      SSHPASS: ${{ secrets.SSH_PRIVATE_KEY }}
+      SSHPASS: ${{ secrets.SSHPASS }}
       SSH_HOST_KEY: ${{ secrets.SSHHOSTKEY }} # Pre-defined SSH host key (store securely as a secret!)
 
     steps:
@@ -40,7 +40,6 @@ jobs:
     - name: Deploy via SSH
       run: |
         # Use ssh directly with the generated id_rsa key
-        # StrictHostKeyChecking=yes is now enforced because known_hosts is populated
         ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
         "${{ env.SSHUSER }}"@"${{ env.SSHIP }}" << 'EOF'
           # Navigate to the application directory
