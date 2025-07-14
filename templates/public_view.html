@@ -40,6 +40,12 @@
       #content-container {
         width: 100%;
         max-width: 100%;
+        min-height:60vh; 
+        background-color:#19171f; 
+        margin: 5px;
+        padding-left: 3px;
+        padding-right: 3px;
+        border-radius:5px
       }
 
       /* Responsive design for larger screens */
@@ -47,6 +53,8 @@
         #content-container {
           width: 50%;
           min-width: 800px;
+          padding:30px; 
+          margin:10px; 
         }
       } 
       
@@ -65,7 +73,7 @@
       background-color:white;
     ">
     
-    <div id="content-container" style="min-height:60vh; background-color:#19171f; padding:30px; margin:10px; border-radius:5px">
+    <div id="content-container">
 
     {% block content %}
       <!-- default content text (typically empty) -->
