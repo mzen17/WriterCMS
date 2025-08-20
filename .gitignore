@@ -4,3 +4,4 @@
 .pytest_cache
 .vscode
 .env
+app/db.sqlite3

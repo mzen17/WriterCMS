@@ -18,7 +18,10 @@ class Comment(models.Model):
     )
 
     def __str__(self):
-        return f"Comment {self.id} posted by {self.user}"
+        return f"Comment {self.pk or 'new'} posted by {self.user}"
+    
+    class Meta:
+        ordering = ['page', 'pk']
 
 
 

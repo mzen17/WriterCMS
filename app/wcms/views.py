@@ -118,6 +118,7 @@ class BucketViewSet(viewsets.ModelViewSet):
     queryset = wm.Bucket.objects.all()
     serializer_class = BucketSerializer
     pagination_class = StandardResultsSetPagination 
+    lookup_field="slug"
 
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['name']
@@ -165,6 +166,7 @@ class BucketViewSet(viewsets.ModelViewSet):
 class PageViewSet(viewsets.ModelViewSet):
     queryset = wm.Page.objects.all()
     serializer_class = PageSerializer
+    lookup_field="slug"
 
     def get_permissions(self):
         """

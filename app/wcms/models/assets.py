@@ -12,5 +12,8 @@ class Asset(models.Model):
 
     def __str__(self):
         return f"Asset for page: {self.page}. Hash: {self.file_name}"
+    
+    class Meta:
+        ordering = ['page', 'file_name']
 
 

@@ -43,26 +43,37 @@ class BucketChildSerializer(serializers.ModelSerializer):
     """Simplified serializer for child buckets"""
     class Meta:
         model = wm.Bucket
-        fields = ['id', 'name', 'banner']
+        fields = ['slug', 'name', 'banner']
 
 class PageSummarySerializer(serializers.ModelSerializer):
     """Simplified serializer for pages within a bucket"""
     class Meta:
         model = wm.Page
-        fields = ['id', 'title']
+        fields = ['slug', 'title']
 
 class BucketSerializer(serializers.HyperlinkedModelSerializer):
     # Add custom fields for hydrated data
     user_owner_name = serializers.CharField(source='user_owner.username', read_only=True)
     bucket_owner_name = serializers.CharField(source='bucket_owner.name', read_only=True)
+    bucket_owner_slug = serializers.CharField(source='bucket_owner.slug', read_only=True)
     can_edit = serializers.SerializerMethodField()
     tag_names = serializers.SerializerMethodField()
     
     # Add nested serializers for children buckets and pages
     children_buckets = serializers.SerializerMethodField()
     pages = serializers.SerializerMethodField()
+    
+    # Configure the bucket_owner hyperlinked field to use slug
+    bucket_owner = serializers.HyperlinkedRelatedField(
+        view_name='bucket-detail',
+        lookup_field='slug',
+        queryset=wm.Bucket.objects.all(),
+        required=False,
+        allow_null=True
+    )
 
     class Meta:
+        lookup_field="slug"
         model = wm.Bucket
         fields = [
             'url',
@@ -70,6 +81,7 @@ class BucketSerializer(serializers.HyperlinkedModelSerializer):
             'user_owner',  # Keep original URL field
             'user_owner_name',  # Add hydrated username
             'bucket_owner',
+            'bucket_owner_slug',
             'bucket_owner_name',  # Add hydrated bucket name
             'visibility',
             'tags',
@@ -77,10 +89,15 @@ class BucketSerializer(serializers.HyperlinkedModelSerializer):
             'description',
             'banner',
             'can_edit',
+            'slug',
             'background',
             'children_buckets',  # Add children buckets
             'pages'  # Add pages
         ]
+        extra_kwargs = {
+            'url': {'lookup_field': 'slug'}
+        }
+
         read_only_fields = ['user_owner', 'user_owner_name', 'bucket_owner_name', 'tag_names', 'can_edit', 'children_buckets', 'pages'] 
 
     def get_tag_names(self, obj):
@@ -117,7 +134,20 @@ class BucketSerializer(serializers.HyperlinkedModelSerializer):
         validated_data['user_owner'] = self.context['request'].user
         return super().create(validated_data)
 class PageSerializer(serializers.HyperlinkedModelSerializer):
+
     owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    bucket = serializers.HyperlinkedRelatedField(
+        view_name='bucket-detail',
+        lookup_field='slug',
+        queryset=wm.Bucket.objects.all()
+    )
+    bucket_slug = serializers.CharField(source='bucket.slug', read_only=True)
+    next = serializers.SerializerMethodField()
+    before = serializers.SerializerMethodField()
+    can_edit = serializers.SerializerMethodField()
+
+
+    lookup_field='slug'
     
     class Meta:
         model = wm.Page
@@ -125,12 +155,70 @@ class PageSerializer(serializers.HyperlinkedModelSerializer):
             'url',
             'title',
             'description',
+            'bucket_slug',
+            'next',
+            'before',
+            'can_edit',
             'porder',
             'public',
+            'slug',
             'bucket',
             'owner'
         ]
-        read_only_fields = ['owner']
+        extra_kwargs = {
+            'url': {'lookup_field': 'slug'}
+        }
+
+        read_only_fields = ['owner', 'next', 'before']
+
+    def get_next(self, obj):
+        """Find the page with the closest higher porder in the same bucket that the user can access"""
+        try:
+            user = self.context['request'].user
+            next_page = wm.Page.objects.filter(
+                bucket=obj.bucket,
+                porder__gt=obj.porder
+            ).filter(
+                Q(owner=user) |
+                Q(readers=user) |
+                Q(public=True, bucket__visibility=True)
+            ).order_by('porder').first()
+            
+            if next_page:
+                return {
+                    'slug': next_page.slug,
+                    'title': next_page.title,
+                    'porder': next_page.porder
+                }
+            return None
+        except Exception:
+            return None
+
+    def get_before(self, obj):
+        """Find the page with the closest lower porder in the same bucket that the user can access"""
+        try:
+            user = self.context['request'].user
+            previous_page = wm.Page.objects.filter(
+                bucket=obj.bucket,
+                porder__lt=obj.porder
+            ).filter(
+                Q(owner=user) |
+                Q(readers=user) |
+                Q(public=True, bucket__visibility=True)
+            ).order_by('-porder').first()
+            
+            if previous_page:
+                return {
+                    'slug': previous_page.slug,
+                    'title': previous_page.title,
+                    'porder': previous_page.porder
+                }
+            return None
+        except Exception:
+            return None
+
+    def get_can_edit(self, obj):
+        return self.context['request'].user == obj.owner
 
 class TagSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:

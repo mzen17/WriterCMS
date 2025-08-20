@@ -6,3 +6,6 @@ class Tag(models.Model):
 
     def __str__(self):
         return self.tag_name
+    
+    class Meta:
+        ordering = ['tag_name']
