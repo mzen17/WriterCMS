@@ -155,6 +155,8 @@ class PageSerializer(serializers.HyperlinkedModelSerializer):
         queryset=wm.Bucket.objects.all()
     )
     bucket_slug = serializers.CharField(source='bucket.slug', read_only=True)
+    bucket_bg = serializers.CharField(source='bucket.background', read_only=True)
+
     next = serializers.SerializerMethodField()
     before = serializers.SerializerMethodField()
     can_edit = serializers.SerializerMethodField()
@@ -172,6 +174,7 @@ class PageSerializer(serializers.HyperlinkedModelSerializer):
             'next',
             'before',
             'can_edit',
+            'bucket_bg',
             'porder',
             'public',
             'slug',

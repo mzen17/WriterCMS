@@ -419,7 +419,18 @@
 
 <!-- Bucket content -->
 {#if bucketData && !loading}
-    <div class="max-w-6xl mx-auto">
+    <!-- Background container with bucket background image -->
+    <div class="fixed inset-0 z-0">
+        {#if bucketData.background}
+            <div 
+                class="w-full h-full bg-cover bg-center bg-fixed bg-no-repeat"
+                style="background-image: url('{bucketData.background}')"
+            ></div>
+        {/if}
+    </div>
+    
+    <!-- Main content container with backdrop blur -->
+    <div class="relative z-10 max-w-6xl mx-auto bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-lg shadow-lg">
         <!-- Header with banner image -->
         <div class="relative h-64 md:h-80 lg:h-96 overflow-hidden rounded-lg shadow-lg mb-8">
             <img 

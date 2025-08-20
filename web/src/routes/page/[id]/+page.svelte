@@ -7,6 +7,8 @@
     let pageData: any = $state(null);
     let loading: boolean = $state(true);
     let error: string = $state('');
+    let backgroundImageLoaded: boolean = $state(false);
+    let backgroundImageError: boolean = $state(false);
     
     // Get the ID from the route parameters
     let pageID = $derived($page.params.id);
@@ -89,8 +91,17 @@
 
 <!-- Page content -->
 {#if pageData && !loading}
-    <main class="flex justify-center min-h-screen">
-        <article id="page_content" class="p-2.5 md:w-[600px] md:p-0 flex flex-col min-h-screen">
+    <div class="fixed inset-0 z-0" id="renderer">
+        {#if pageData.bucket_bg}
+            <div id="bg"
+                class="w-full h-full bg-cover bg-center bg-fixed bg-no-repeat"
+                style="background-image: url('{pageData.bucket_bg}')"
+            ></div>
+        {/if}
+    </div>
+
+    <main class="flex justify-center min-h-screen relative">        
+        <article id="page_content" class="md:w-[600px] md:p-4 flex flex-col min-h-screen relative z-10 'backdrop-blur-sm bg-white bg-opacity-90 dark:bg-gray-900 dark:bg-opacity-90 rounded-lg shadow-lg m-0.5 p-4">
             <header class="mb-1.5 mt-5">
                 <div class="flex items-center gap-3 mb-1.5">
                     <h2 

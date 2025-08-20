@@ -44,7 +44,7 @@
     }
 </script>
 
-<nav class="bg-white z-10 dark:bg-gray-800 shadow-lg w-screen border-b border-gray-200 fixed">
+<nav class="bg-white z-20 dark:bg-gray-800 shadow-lg w-screen border-b border-gray-200 fixed">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
             <div class="flex-shrink-0">
