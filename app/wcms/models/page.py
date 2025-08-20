@@ -44,6 +44,10 @@ class Page(models.Model):
         return slug
 
     def save(self, *args, **kwargs):
+        # Validate that bucket owner matches page owner
+        if self.bucket and self.owner and self.bucket.user_owner != self.owner:
+            raise ValueError("Page owner must match bucket owner")
+        
         title_changed = False
         if self.slug:
             try:

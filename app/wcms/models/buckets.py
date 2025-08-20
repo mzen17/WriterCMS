@@ -57,6 +57,10 @@ class Bucket(models.Model):
 
     def clean(self):
         """Validate that there are no circular parent relationships"""
+        if self.bucket_owner and self.bucket_owner.user_owner != self.user_owner:
+            raise ValueError("Bucket owner must match bucket user owner")
+
+        
         if self.bucket_owner:
             # Check for direct self-reference
             if self.bucket_owner == self:

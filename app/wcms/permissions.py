@@ -19,3 +19,43 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
             return obj.user_owner == request.user
         else:
             return obj == request.user
+
+
+class ReadOnlyPermission(permissions.BasePermission):
+    """
+    Permission that only allows safe methods (GET, HEAD, OPTIONS)
+    """
+    def has_permission(self, request, view):
+        return request.method in permissions.SAFE_METHODS
+    
+    def has_object_permission(self, request, view, obj):
+        return request.method in permissions.SAFE_METHODS
+
+
+class IsAuthenticatedOrReadOnlyPublic(permissions.BasePermission):
+    """
+    Custom permission that allows:
+    - Authenticated users: full access based on other permission classes
+    - Unauthenticated users: read-only access to public content only
+    """
+    def has_permission(self, request, view):
+        # For safe methods (GET, HEAD, OPTIONS), allow both authenticated and unauthenticated
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        
+        # For non-safe methods, require authentication
+        return request.user and request.user.is_authenticated
+
+
+class RestrictNonGETForGuests(permissions.BasePermission):
+    """
+    Permission that restricts unauthenticated users to GET requests only
+    (except for login endpoints)
+    """
+    def has_permission(self, request, view):
+        # Allow all requests for authenticated users
+        if request.user and request.user.is_authenticated:
+            return True
+        
+        # For unauthenticated users, only allow GET, HEAD, OPTIONS
+        return request.method in permissions.SAFE_METHODS

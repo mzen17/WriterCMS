@@ -22,9 +22,17 @@
     let editBucketVisibility: boolean = $state(false);
     let editBucketBanner: string = $state('');
     let editBucketBackground: string = $state('');
-    let editBucketTags: string = $state(''); // Store as comma-separated string for the input
+    let editBucketTags: string[] = $state([]); // Store as array of tag URLs
     let savingBucket: boolean = $state(false);
     let editError: string = $state('');
+
+    // Tag management state variables
+    let availableTags: any[] = $state([]);
+    let loadingTags: boolean = $state(false);
+    let newTagName: string = $state('');
+    let showTagInput: boolean = $state(false);
+    let creatingTag: boolean = $state(false);
+    let tagError: string = $state('');
 
     // Create page dialog state variables
     let showCreatePageDialog: boolean = $state(false);
@@ -36,6 +44,101 @@
     // Get the ID from the route parameters
     let bucketId = $derived($page.params.id);
     
+    // Function to fetch available tags
+    async function fetchAvailableTags() {
+        loadingTags = true;
+        try {
+            const response = await fetch('http://localhost:8000/api/tags/', {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                availableTags = data.results;
+            } else {
+                console.error('Failed to fetch tags:', response.status);
+            }
+        } catch (err) {
+            console.error('Network error while fetching tags:', err);
+        } finally {
+            loadingTags = false;
+        }
+    }
+
+    // Function to create a new tag
+    async function createNewTag() {
+        if (!newTagName.trim()) {
+            tagError = 'Tag name is required';
+            return;
+        }
+
+        // Validate tag name
+        const tagNameRegex = /^[a-zA-Z\-_\/]+$/;
+        if (!tagNameRegex.test(newTagName) || newTagName.length > 20) {
+            tagError = 'Tag name can only contain letters, hyphens, underscores, and slashes, and must be 20 characters or less';
+            return;
+        }
+
+        creatingTag = true;
+        tagError = '';
+
+        try {
+            const csrfToken = await getCSRFToken();
+            const response = await fetch('http://localhost:8000/api/tags/', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    tag_name: newTagName.trim(),
+                    tag_description: ''
+                })
+            });
+
+            if (response.ok) {
+                const newTag = await response.json();
+                availableTags = [...availableTags, newTag];
+                editBucketTags = [...editBucketTags, newTag.url];
+                newTagName = '';
+                showTagInput = false;
+            } else {
+                const errorData = await response.json().catch(() => ({}));
+                tagError = errorData.detail || errorData.error || `Failed to create tag: ${response.status}`;
+            }
+        } catch (err) {
+            tagError = 'Network error while creating tag';
+            console.error('Create tag error:', err);
+        } finally {
+            creatingTag = false;
+        }
+    }
+
+    // Function to toggle tag selection
+    function toggleTag(tagUrl: string) {
+        if (editBucketTags.includes(tagUrl)) {
+            editBucketTags = editBucketTags.filter(url => url !== tagUrl);
+        } else {
+            editBucketTags = [...editBucketTags, tagUrl];
+        }
+    }
+
+    // Function to remove tag from selection
+    function removeTag(tagUrl: string) {
+        editBucketTags = editBucketTags.filter(url => url !== tagUrl);
+    }
+
+    // Function to get tag name by URL
+    function getTagNameByUrl(tagUrl: string): string {
+        const tag = availableTags.find(t => t.url === tagUrl);
+        return tag ? tag.tag_name : '';
+    }
+
     // Function to fetch bucket data
     async function fetchBucketData(id: string) {
         loading = true;
@@ -99,8 +202,9 @@
             editBucketVisibility = bucketData.visibility || false;
             editBucketBanner = bucketData.banner || '';
             editBucketBackground = bucketData.background || '';
-            editBucketTags = bucketData.tag_names ? bucketData.tag_names.join(', ') : '';
+            editBucketTags = bucketData.tags || [];
             editError = '';
+            fetchAvailableTags(); // Load available tags when opening dialog
         }
     }
 
@@ -112,8 +216,11 @@
         editBucketVisibility = false;
         editBucketBanner = '';
         editBucketBackground = '';
-        editBucketTags = '';
+        editBucketTags = [];
         editError = '';
+        newTagName = '';
+        showTagInput = false;
+        tagError = '';
     }
 
     // Function to save bucket edits
@@ -129,12 +236,6 @@
         try {
             const csrfToken = await getCSRFToken();
             
-            // Convert comma-separated tags string to array
-            const tagsArray = editBucketTags
-                .split(',')
-                .map(tag => tag.trim())
-                .filter(tag => tag.length > 0);
-
             const response = await fetch(`http://localhost:8000/api/buckets/${bucketId}/`, {
                 method: 'PUT',
                 credentials: 'include',
@@ -148,7 +249,7 @@
                     visibility: editBucketVisibility,
                     banner: editBucketBanner.trim(),
                     background: editBucketBackground.trim(),
-                    tags: tagsArray
+                    tags: editBucketTags
                 })
             });
 
@@ -156,8 +257,8 @@
                 const updatedBucket = await response.json();
                 console.log('Bucket updated successfully:', updatedBucket);
                 closeEditBucketDialog();
-                // Refresh the bucket data to show the updates
                 await fetchBucketData(bucketId);
+                window.location.href = "/bucket/" + bucketData.bucket_owner_slug
             } else {
                 const errorData = await response.json().catch(() => ({}));
                 editError = errorData.detail || errorData.error || `Failed to update bucket: ${response.status}`;
@@ -168,7 +269,6 @@
             console.error('Update bucket error:', err);
         } finally {
             savingBucket = false;
-            window.location.href = "/buckets/" + bucketData.bucket_owner_slug
         }
     }
 
@@ -489,12 +589,14 @@
             <!-- Visibility toggle -->
             <div class="mb-6">
                 <label class="flex items-center space-x-3">
-                    <input
-                        type="checkbox"
-                        bind:checked={newBucketVisibility}
-                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                    <button
+                        type="button"
+                        onclick={() => newBucketVisibility = !newBucketVisibility}
+                        class={`relative inline-flex w-12 h-6 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${newBucketVisibility ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'} ${creatingBucket ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         disabled={creatingBucket}
-                    />
+                    >
+                        <span class={`inline-block w-4 h-4 transform transition-transform bg-white rounded-full shadow-md ${newBucketVisibility ? 'translate-x-7' : 'translate-x-1'}`}></span>
+                    </button>
                     <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
                         Public visibility
                     </span>
@@ -570,12 +672,14 @@
             <!-- Public toggle -->
             <div class="mb-6">
                 <label class="flex items-center space-x-3">
-                    <input
-                        type="checkbox"
-                        bind:checked={newPagePublic}
-                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                    <button
+                        type="button"
+                        onclick={() => newPagePublic = !newPagePublic}
+                        class={`relative inline-flex w-12 h-6 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${newPagePublic ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'} ${creatingPage ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         disabled={creatingPage}
-                    />
+                    >
+                        <span class={`inline-block w-4 h-4 transform transition-transform bg-white rounded-full shadow-md ${newPagePublic ? 'translate-x-7' : 'translate-x-1'}`}></span>
+                    </button>
                     <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
                         Public page
                     </span>
@@ -695,28 +799,133 @@
             
             <!-- Tags input -->
             <div class="mb-4">
-                <label for="editBucketTags" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Tags (comma-separated)
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Tags
                 </label>
-                <input
-                    id="editBucketTags"
-                    type="text"
-                    bind:value={editBucketTags}
-                    placeholder="tag1, tag2, tag3"
-                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                    disabled={savingBucket}
-                />
+                
+                <!-- Selected tags display -->
+                {#if editBucketTags.length > 0}
+                    <div class="mb-3">
+                        <div class="flex flex-wrap gap-2">
+                            {#each editBucketTags as tagUrl}
+                                <span class="inline-flex items-center gap-1 bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full dark:bg-blue-900 dark:text-blue-200">
+                                    #{getTagNameByUrl(tagUrl)}
+                                    <button 
+                                        type="button"
+                                        onclick={() => removeTag(tagUrl)}
+                                        class="ml-1 text-blue-600 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-100"
+                                        disabled={savingBucket}
+                                    >
+                                        ×
+                                    </button>
+                                </span>
+                            {/each}
+                        </div>
+                    </div>
+                {/if}
+                
+                <!-- Available tags dropdown -->
+                {#if !loadingTags && availableTags.length > 0}
+                    <div class="mb-3">
+                        <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">
+                            Select from existing tags:
+                        </label>
+                        <div class="max-h-32 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-md p-2 bg-white dark:bg-gray-700">
+                            {#each availableTags as tag}
+                                <label class="flex items-center space-x-2 p-1 hover:bg-gray-50 dark:hover:bg-gray-600 rounded cursor-pointer">
+                                    <button
+                                        type="button"
+                                        onclick={() => toggleTag(tag.url)}
+                                        class={`relative inline-flex w-10 h-5 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${editBucketTags.includes(tag.url) ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-600'} ${savingBucket ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                        disabled={savingBucket}
+                                    >
+                                        <span class={`inline-block w-3 h-3 transform transition-transform bg-white rounded-full shadow-sm ${editBucketTags.includes(tag.url) ? 'translate-x-6' : 'translate-x-1'}`}></span>
+                                    </button>
+                                    <span class="text-sm text-gray-700 dark:text-gray-300">
+                                        {tag.tag_name}
+                                        {#if tag.tag_description}
+                                            <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                - {tag.tag_description}
+                                            </span>
+                                        {/if}
+                                    </span>
+                                </label>
+                            {/each}
+                        </div>
+                    </div>
+                {:else if loadingTags}
+                    <div class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+                        Loading tags...
+                    </div>
+                {/if}
+                
+                <!-- Create new tag section -->
+                <div class="mb-3">
+                    {#if !showTagInput}
+                        <button
+                            type="button"
+                            onclick={() => { showTagInput = true; tagError = ''; }}
+                            class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 transition-colors"
+                            disabled={savingBucket}
+                        >
+                            + Create new tag
+                        </button>
+                    {:else}
+                        <div class="space-y-2">
+                            <label class="block text-sm text-gray-600 dark:text-gray-400">
+                                Create new tag:
+                            </label>
+                            <div class="flex gap-2">
+                                <input
+                                    type="text"
+                                    bind:value={newTagName}
+                                    placeholder="Tag name (letters, -, _, / only)"
+                                    maxlength="20"
+                                    class="flex-1 px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                                    disabled={creatingTag || savingBucket}
+                                />
+                                <button
+                                    type="button"
+                                    onclick={createNewTag}
+                                    class="px-3 py-1 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled={creatingTag || savingBucket || !newTagName.trim()}
+                                >
+                                    {#if creatingTag}
+                                        Creating...
+                                    {:else}
+                                        Add
+                                    {/if}
+                                </button>
+                                <button
+                                    type="button"
+                                    onclick={() => { showTagInput = false; newTagName = ''; tagError = ''; }}
+                                    class="px-3 py-1 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md transition-colors"
+                                    disabled={creatingTag || savingBucket}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                            {#if tagError}
+                                <div class="text-sm text-red-600 dark:text-red-400">
+                                    {tagError}
+                                </div>
+                            {/if}
+                        </div>
+                    {/if}
+                </div>
             </div>
             
             <!-- Visibility toggle -->
             <div class="mb-6">
                 <label class="flex items-center space-x-3">
-                    <input
-                        type="checkbox"
-                        bind:checked={editBucketVisibility}
-                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                    <button
+                        type="button"
+                        onclick={() => editBucketVisibility = !editBucketVisibility}
+                        class={`relative inline-flex w-12 h-6 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${editBucketVisibility ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'} ${savingBucket ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         disabled={savingBucket}
-                    />
+                    >
+                        <span class={`inline-block w-4 h-4 transform transition-transform bg-white rounded-full shadow-md ${editBucketVisibility ? 'translate-x-7' : 'translate-x-1'}`}></span>
+                    </button>
                     <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
                         Public visibility
                     </span>

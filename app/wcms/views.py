@@ -20,7 +20,7 @@ from wcms.serializers import (
     CommentSerializer,
     AssetSerializer
 )
-from wcms.permissions import IsOwnerOrReadOnly
+from wcms.permissions import IsOwnerOrReadOnly, IsAuthenticatedOrReadOnlyPublic, RestrictNonGETForGuests, ReadOnlyPermission
 
 # max page size = 5
 class StandardResultsSetPagination(PageNumberPagination):
@@ -84,21 +84,19 @@ class WCMSUserViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         """
-        Allow user creation (POST) by anyone.
-        Allow listing (GET /users/) by anyone.
-        Allow retrieval, update, partial update, and deletion of *own* profile by authenticated user.
+        Allow user creation (POST) by anyone (for registration).
+        Allow basic user listing (GET /users/) by anyone (but limit data in serializer).
+        Allow retrieval, update, partial update, and deletion of *own* profile by authenticated user only.
+        Unauthenticated users can only make GET requests and POST (for registration).
         """
         if self.action == 'create':
             permission_classes = [permissions.AllowAny]
         elif self.action == 'list':
-            # Anyone can list users
-            permission_classes = [permissions.AllowAny]
+            # Anyone can list users, but restrict to GET only for unauthenticated
+            permission_classes = [permissions.AllowAny, RestrictNonGETForGuests]
         elif self.action in ['retrieve', 'update', 'partial_update', 'destroy']:
-            # Authenticated users can retrieve/update/delete their own profile
-            # IsOwnerOrReadOnly needs to check obj == request.user for WCMSUser model itself
             permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
         else:
-            # Default for other actions (e.g., any custom @action not covered)
             permission_classes = [permissions.IsAuthenticated]
         return [permission() for permission in permission_classes]
 
@@ -126,23 +124,24 @@ class BucketViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         """
         Authenticated users can create buckets.
-        Read access (list, retrieve) based on queryset.
+        Unauthenticated users can only view public buckets (read-only).
         Update/delete only by owner.
         """
         if self.action == 'create':
             permission_classes = [permissions.IsAuthenticated]
         elif self.action in ['retrieve', 'list']:
-            # Listing/retrieving handled by get_queryset, just need authentication to see
-            permission_classes = [permissions.IsAuthenticated]
+            permission_classes = [IsAuthenticatedOrReadOnlyPublic, RestrictNonGETForGuests]
         elif self.action in ['update', 'partial_update', 'destroy']:
-            # Only owner can update/delete
             permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
         else:
             permission_classes = [permissions.IsAuthenticated]
         return [permission() for permission in permission_classes]
 
     def get_queryset(self):
-        """Users can only see their own buckets or buckets that they are a read of using django Q"""
+        """
+        Authenticated users can see their own buckets or buckets that they are a reader of.
+        Unauthenticated users can only see public buckets.
+        """
         user = self.request.user
         if user.is_authenticated:
             return wm.Bucket.objects.filter(
@@ -157,7 +156,18 @@ class BucketViewSet(viewsets.ModelViewSet):
                 'pages',  # Optimize pages lookup for the bucket
                 'bucket_set'  # Optimize children buckets lookup (reverse foreign key)
             ).distinct()
-        return wm.Bucket.objects.none()
+        else:
+            # Unauthenticated users can only see public buckets
+            return wm.Bucket.objects.filter(
+                visibility=True
+            ).select_related(
+                'user_owner',
+                'bucket_owner'
+            ).prefetch_related(
+                'tags',
+                'pages',
+                'bucket_set'
+            ).distinct()
 
     def perform_create(self, serializer):
         serializer.save(user_owner=self.request.user)
@@ -171,13 +181,14 @@ class PageViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         """
         Authenticated users can create pages.
-        Read access (list, retrieve) based on queryset.
+        Unauthenticated users can only view public pages (read-only).
         Update/delete only by owner.
         """
         if self.action == 'create':
             permission_classes = [permissions.IsAuthenticated]
         elif self.action in ['retrieve', 'list']:
-            permission_classes = [permissions.IsAuthenticated]
+            # Allow both authenticated and unauthenticated users to view
+            permission_classes = [IsAuthenticatedOrReadOnlyPublic, RestrictNonGETForGuests]
         elif self.action in ['update', 'partial_update', 'destroy']:
             permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
         else:
@@ -185,7 +196,10 @@ class PageViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def get_queryset(self):
-        """Users can only see their own pages or pages in buckets they can read"""
+        """
+        Authenticated users can see their own pages or pages in buckets they can read.
+        Unauthenticated users can only see public pages in public buckets.
+        """
         user = self.request.user
         if user.is_authenticated:
             return wm.Page.objects.filter(
@@ -194,7 +208,12 @@ class PageViewSet(viewsets.ModelViewSet):
                 Q(bucket__readers=user) | # Pages in buckets where user is a reader
                 Q(public=True, bucket__visibility=True) # Public pages in public buckets
             ).distinct()
-        return wm.Page.objects.none()
+        else:
+            # Unauthenticated users can only see public pages in public buckets
+            return wm.Page.objects.filter(
+                public=True, 
+                bucket__visibility=True
+            ).distinct()
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
@@ -207,14 +226,16 @@ class TagViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         """
         Authenticated users can create, read, and delete tags.
-        Edit/update operations are not allowed.
+        Unauthenticated users can only view tags (read-only).
+        Edit/update operations are not allowed for anyone.
         """
         if self.action == 'create':
             permission_classes = [permissions.IsAuthenticated]
         elif self.action in ['retrieve', 'list']:
-            permission_classes = [permissions.IsAuthenticated]
+            # Allow both authenticated and unauthenticated users to view tags
+            permission_classes = [IsAuthenticatedOrReadOnlyPublic, RestrictNonGETForGuests]
         elif self.action in ['update', 'partial_update']:
-            permission_classes = [permissions.IsAuthenticated, ReadOnly]
+            permission_classes = [permissions.IsAuthenticated, ReadOnlyPermission]
         elif self.action == 'destroy':
             permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
         else:
@@ -231,13 +252,14 @@ class CommentViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         """
         Authenticated users can create comments.
-        Read access (list, retrieve) based on queryset.
+        Unauthenticated users can only view public comments (read-only).
         Update/delete only by owner.
         """
         if self.action == 'create':
             permission_classes = [permissions.IsAuthenticated]
         elif self.action in ['retrieve', 'list']:
-            permission_classes = [permissions.IsAuthenticated]
+            # Allow both authenticated and unauthenticated users to view
+            permission_classes = [IsAuthenticatedOrReadOnlyPublic, RestrictNonGETForGuests]
         elif self.action in ['update', 'partial_update', 'destroy']:
             permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
         else:
@@ -246,10 +268,12 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """
-        Users can see comments on:
+        Authenticated users can see comments on:
         1. Their own pages (regardless of privacy)
         2. Pages where they are part of pages.readers (manytomany field) OR are part of the buckets.readers (also m2m field)
         3. Public pages in public buckets
+        
+        Unauthenticated users can only see comments on public pages in public buckets.
         """
         user = self.request.user
         if user.is_authenticated:
@@ -259,7 +283,12 @@ class CommentViewSet(viewsets.ModelViewSet):
                 Q(page__bucket__readers=user) |  # Buckets where user is a reader
                 Q(page__public=True, page__bucket__visibility=True)  # Public pages in public buckets
             ).distinct()
-        return wm.Comment.objects.none()
+        else:
+            # Unauthenticated users can only see comments on public pages in public buckets
+            return wm.Comment.objects.filter(
+                page__public=True, 
+                page__bucket__visibility=True
+            ).distinct()
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user) # Assuming 'user' is the FK to WCMSUser on Comment model
@@ -272,13 +301,14 @@ class AssetViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         """
         Authenticated users can create assets.
-        Read access (list, retrieve) based on queryset.
+        Unauthenticated users can only view public assets (read-only).
         Update/delete only by owner.
         """
         if self.action == 'create':
             permission_classes = [permissions.IsAuthenticated]
         elif self.action in ['retrieve', 'list']:
-            permission_classes = [permissions.IsAuthenticated]
+            # Allow both authenticated and unauthenticated users to view
+            permission_classes = [IsAuthenticatedOrReadOnlyPublic, RestrictNonGETForGuests]
         elif self.action in ['update', 'partial_update', 'destroy']:
             permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
         else:
@@ -286,7 +316,10 @@ class AssetViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def get_queryset(self):
-        """Users can only see assets from pages they can access (owner, reader, or public)"""
+        """
+        Authenticated users can see assets from pages they can access (owner, reader, or public).
+        Unauthenticated users can only see assets from public pages in public buckets.
+        """
         user = self.request.user
         if user.is_authenticated:
             return wm.Asset.objects.filter(
@@ -295,7 +328,12 @@ class AssetViewSet(viewsets.ModelViewSet):
                 Q(page__bucket__readers=user) | # Assets in pages in buckets where user is a reader
                 Q(page__public=True, page__bucket__visibility=True) # Public assets in public pages/buckets
             ).distinct()
-        return wm.Asset.objects.none()
+        else:
+            # Unauthenticated users can only see assets from public pages in public buckets
+            return wm.Asset.objects.filter(
+                page__public=True, 
+                page__bucket__visibility=True
+            ).distinct()
 
     def perform_create(self, serializer):
         serializer.save(uploaded_by=self.request.user) # Assuming 'uploaded_by' is the FK to WCMSUser on Asset model

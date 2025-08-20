@@ -110,23 +110,36 @@ class BucketSerializer(serializers.HyperlinkedModelSerializer):
     def get_children_buckets(self, obj):
         """Get all child buckets with their banner, name, and id that the current user can access"""
         user = self.context['request'].user
-        children = wm.Bucket.objects.filter(
-            bucket_owner=obj
-        ).filter(
-            Q(user_owner=user) |
-            Q(readers=user) |
-            Q(visibility=True)
-        )
+
+        if user.is_authenticated:
+            children = wm.Bucket.objects.filter(
+                bucket_owner=obj
+            ).filter(
+                Q(user_owner=user) |
+                Q(readers=user) |
+                Q(visibility=True)
+            )
+        else:
+            children = wm.Bucket.objects.filter(
+                bucket_owner=obj
+            ).filter(
+                Q(visibility=True)
+            )
         return BucketChildSerializer(children, many=True).data
     
     def get_pages(self, obj):
         """Get all pages in this bucket with their name and id that the current user can access"""
         user = self.context['request'].user
-        pages = obj.pages.filter(
-            Q(owner=user) |
-            Q(readers=user) |
-            Q(public=True, bucket__visibility=True)
-        )
+        if user.is_authenticated:
+            pages = obj.pages.filter(
+                Q(owner=user) |
+                Q(readers=user) |
+                Q(public=True, bucket__visibility=True)
+            )
+        else:
+            pages = obj.pages.filter(
+                Q(public=True, bucket__visibility=True)
+            )
         return PageSummarySerializer(pages, many=True).data
 
     def create(self, validated_data):
@@ -175,14 +188,22 @@ class PageSerializer(serializers.HyperlinkedModelSerializer):
         """Find the page with the closest higher porder in the same bucket that the user can access"""
         try:
             user = self.context['request'].user
-            next_page = wm.Page.objects.filter(
-                bucket=obj.bucket,
-                porder__gt=obj.porder
-            ).filter(
-                Q(owner=user) |
-                Q(readers=user) |
-                Q(public=True, bucket__visibility=True)
-            ).order_by('porder').first()
+            if user.is_authenticated:
+                next_page = wm.Page.objects.filter(
+                    bucket=obj.bucket,
+                    porder__gt=obj.porder
+                ).filter(
+                    Q(owner=user) |
+                    Q(readers=user) |
+                    Q(public=True, bucket__visibility=True)
+                ).order_by('porder').first()
+            else:
+                next_page = wm.Page.objects.filter(
+                    bucket=obj.bucket,
+                    porder__gt=obj.porder
+                ).filter(
+                    Q(public=True, bucket__visibility=True)
+                ).order_by('porder').first()
             
             if next_page:
                 return {
@@ -198,12 +219,20 @@ class PageSerializer(serializers.HyperlinkedModelSerializer):
         """Find the page with the closest lower porder in the same bucket that the user can access"""
         try:
             user = self.context['request'].user
-            previous_page = wm.Page.objects.filter(
+            if user.is_authenticated:
+                previous_page = wm.Page.objects.filter(
+                    bucket=obj.bucket,
+                    porder__lt=obj.porder
+                ).filter(
+                    Q(owner=user) |
+                    Q(readers=user) |
+                    Q(public=True, bucket__visibility=True)
+                ).order_by('-porder').first()
+            else:
+                previous_page = wm.Page.objects.filter(
                 bucket=obj.bucket,
                 porder__lt=obj.porder
             ).filter(
-                Q(owner=user) |
-                Q(readers=user) |
                 Q(public=True, bucket__visibility=True)
             ).order_by('-porder').first()
             
