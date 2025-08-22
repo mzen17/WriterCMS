@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -38,18 +39,19 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'rest_framework.authtoken',
-    'django_filters',
+    # Removed 'rest_framework.authtoken' - using Firebase authentication
+    'django_filters', 
     'wcms',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'corsheaders.middleware.CorsMiddleware', 
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'wcms.firebase_auth.FirebaseAuthenticationMiddleware',  # Add Firebase middleware
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -88,16 +90,16 @@ CSRF_TRUSTED_ORIGINS = [
 CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
 CSRF_COOKIE_HTTPONLY = False  # Must be False to allow JS access
 CSRF_COOKIE_SAMESITE = 'Lax'
-CSRF_USE_SESSIONS = True
+CSRF_USE_SESSIONS = False  # Changed to False since we're using Firebase auth
 
 # Allow credentials (cookies) to be sent with CORS requests
 CORS_ALLOW_CREDENTIALS = True
 
-# Additional CORS settings for CSRF token handling
+# Additional CORS headers for Firebase authentication
 CORS_ALLOW_HEADERS = [
     'accept',
     'accept-encoding',
-    'authorization',
+    'authorization',  # Important for Firebase Bearer tokens
     'content-type',
     'dnt',
     'origin',
@@ -106,12 +108,13 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-# Session settings for HTTP-only cookie authentication
+# Session settings - kept minimal for admin interface
+# Most authentication now handled by Firebase
 SESSION_COOKIE_AGE = 1209600  # 2 weeks
 SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
-SESSION_SAVE_EVERY_REQUEST = True
+SESSION_SAVE_EVERY_REQUEST = False  # Reduced since not primary auth method
 
 
 
@@ -170,11 +173,17 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Custom user model
 AUTH_USER_MODEL = 'wcms.WCMSUser'
 
+# Django Authentication Backends
+AUTHENTICATION_BACKENDS = [
+    'wcms.firebase_auth.FirebaseAuthenticationBackend',  # Firebase authentication
+    'django.contrib.auth.backends.ModelBackend',  # Fallback to default backend
+]
+
 # Django REST Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.TokenAuthentication',
+        'wcms.firebase_auth.FirebaseAuthentication',
+        # Removed session and token authentication - Firebase only
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
@@ -182,4 +191,31 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10, # Default page size, can be overridden by user
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+}
+
+# Firebase Configuration
+# Add your Firebase service account key path here
+# FIREBASE_SERVICE_ACCOUNT_KEY_PATH = '/path/to/your/firebase-service-account-key.json'
+# If not set, the default application credentials will be used
+
+# Logging configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'wcms.firebase_auth': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
 }

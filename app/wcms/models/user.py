@@ -19,6 +19,10 @@ class WCMSUser(AbstractUser):
         verbose_name='user permissions'
     )
 
+    # Firebase Authentication
+    firebase_uid = models.CharField(max_length=128, unique=True, null=True, blank=True)
+    
+    # Existing WCMS fields
     pfp = models.CharField(max_length=255, blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
     dictionary = models.CharField(max_length=255, blank=True, null=True)

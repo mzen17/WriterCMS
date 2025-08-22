@@ -11,30 +11,26 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
 class WCMSUserSerializer(serializers.HyperlinkedModelSerializer):
-    password = serializers.CharField(write_only=True, required=False)
+    # Firebase handles authentication and user identity
+    firebase_uid = serializers.CharField(read_only=True)
+    username = serializers.CharField(read_only=True)
+    email = serializers.EmailField(read_only=True)
     
     class Meta:
         model = wm.WCMSUser
-        fields = ['url', 'username', 'email', 'first_name', 'last_name', 'pfp', 'bio', 'dictionary', 'theme', 'password']
-        extra_kwargs = {
-            'password': {'write_only': True}
-        }
+        fields = ['url', 'username', 'email', 'first_name', 'last_name', 'pfp', 'bio', 'dictionary', 'theme', 'firebase_uid']
+        read_only_fields = ['firebase_uid', 'username', 'email']  # Firebase manages these fields
     
     def create(self, validated_data):
-        password = validated_data.pop('password')
-        user = wm.WCMSUser.objects.create_user(**validated_data)
-        user.set_password(password)
-        user.save()
+        # Firebase users are created automatically by the authentication backend
+        # This method should typically not be called directly
+        user = wm.WCMSUser.objects.create(**validated_data)
         return user
 
     def update(self, instance, validated_data):
-        # Update fields normally
+        # Update fields normally (password handling removed)
         for attr, value in validated_data.items():
-            if attr == 'password':
-                # Only set password if it's provided in the update data
-                instance.set_password(value)
-            else:
-                setattr(instance, attr, value)
+            setattr(instance, attr, value)
         instance.save()
         return instance
 
@@ -185,7 +181,7 @@ class PageSerializer(serializers.HyperlinkedModelSerializer):
             'url': {'lookup_field': 'slug'}
         }
 
-        read_only_fields = ['owner', 'next', 'before']
+        read_only_fields = ['owner', 'next', 'before', 'description', 'slug']  # Only description and slug read-only
 
     def get_next(self, obj):
         """Find the page with the closest higher porder in the same bucket that the user can access"""
@@ -258,8 +254,9 @@ class TagSerializer(serializers.HyperlinkedModelSerializer):
         fields = [
             'url',
             'tag_name',
-            'tag_description'
+            'tag_description',
         ]
+        read_only_fields = ['url']
 
 class CommentSerializer(serializers.HyperlinkedModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
@@ -285,3 +282,33 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         ]
 
 
+class RevisionSerializer(serializers.ModelSerializer):
+    """Serializer for page revisions"""
+    page = serializers.HyperlinkedRelatedField(
+        view_name='page-detail',
+        lookup_field='slug',
+        read_only=True
+    )
+    
+    class Meta:
+        model = wm.Revisions
+        fields = [
+            'id',
+            'page',
+            'revision_number',
+            'diff',
+            'timestamp'
+        ]
+        read_only_fields = ['id', 'revision_number', 'timestamp', 'page']
+
+
+class CreateRevisionSerializer(serializers.Serializer):
+    """Serializer for creating new revisions"""
+    content = serializers.CharField(
+        help_text="The new content for the page"
+    )
+    
+    def validate_content(self, value):
+        if not value.strip():
+            raise serializers.ValidationError("Content cannot be empty")
+        return value

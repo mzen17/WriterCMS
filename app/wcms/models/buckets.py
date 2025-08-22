@@ -81,6 +81,18 @@ class Bucket(models.Model):
                     visited.add(current.slug)
                     current = current.bucket_owner
 
+    def delete(self, *args, **kwargs):
+        """Override delete to prevent deletion if bucket has children or pages"""
+        # Check for child buckets using the reverse foreign key relationship
+        if self.bucket_set.exists():
+            raise ValidationError("Cannot delete bucket with child buckets")
+        
+        # Check for pages using the related name from Page model
+        if self.pages.exists():
+            raise ValidationError("Cannot delete bucket with pages")
+        
+        return super().delete(*args, **kwargs)
+
     def save(self, *args, **kwargs):
         name_changed = False
         if self.slug:
