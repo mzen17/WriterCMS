@@ -4,6 +4,8 @@ from django.db.models.functions import Length
 from django.conf import settings
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
+from wcms.firebase_auth import FirebaseAuthentication
+
 from rest_framework import routers, serializers, viewsets, permissions, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
@@ -76,6 +78,7 @@ class WCMSUserViewSet(viewsets.ModelViewSet):
 
 
 class BucketViewSet(viewsets.ModelViewSet):
+
     queryset = wm.Bucket.objects.all()
     serializer_class = BucketSerializer
     pagination_class = StandardResultsSetPagination 
@@ -166,6 +169,7 @@ class BucketViewSet(viewsets.ModelViewSet):
 
 
 class PageViewSet(viewsets.ModelViewSet):
+
     queryset = wm.Page.objects.all()
     serializer_class = PageSerializer
     lookup_field="slug"
@@ -176,11 +180,9 @@ class PageViewSet(viewsets.ModelViewSet):
         Unauthenticated users can only view public pages (read-only).
         Update/delete only by owner.
         """
-        print(self.request.user)
         if self.action == 'create':
             permission_classes = [permissions.IsAuthenticated]
         elif self.action in ['retrieve', 'list']:
-            # Allow both authenticated and unauthenticated users to view
             permission_classes = [IsAuthenticatedOrReadOnlyPublic, RestrictNonGETForGuests]
         elif self.action in ['update', 'partial_update', 'destroy']:
             permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
@@ -196,7 +198,9 @@ class PageViewSet(viewsets.ModelViewSet):
         Unauthenticated users can only see public pages in public buckets.
         """
         user = self.request.user
-        if user.is_authenticated:
+        print(str(user))
+
+        if user.id:
             return wm.Page.objects.filter(
                 Q(owner=user) |
                 Q(readers=user) | # Pages where user is directly a reader
@@ -295,6 +299,7 @@ class PageViewSet(viewsets.ModelViewSet):
 
 
 class RevisionViewSet(viewsets.ReadOnlyModelViewSet):
+
     """
     ViewSet for viewing revisions. 
     Revisions are read-only and can only be viewed by page owners.
@@ -316,6 +321,7 @@ class RevisionViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class TagViewSet(viewsets.ModelViewSet):
+
     queryset = wm.Tag.objects.all()
     serializer_class = TagSerializer
     pagination_class = StandardResultsSetPagination 
@@ -383,6 +389,7 @@ class TagViewSet(viewsets.ModelViewSet):
         serializer.save()
 
 class CommentViewSet(viewsets.ModelViewSet):
+
     queryset = wm.Comment.objects.all()
     serializer_class = CommentSerializer
 
@@ -432,6 +439,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 class AssetViewSet(viewsets.ModelViewSet):
+
     queryset = wm.Asset.objects.all()
     serializer_class = AssetSerializer
 

@@ -1,45 +1,20 @@
 <script lang="ts">
-    import { authenticatedFetch, clearCSRFToken } from '$lib/csrf';
+    import { signOut } from 'firebase/auth';
+    import { auth as firebaseAuth } from '$lib/firebase';
+    import { goto } from '$app/navigation';
     
     export let pfp = "";
-    export let auth = false;
+    export let auth: boolean = false;
     export let username = "";
     let showMenu = false;
 
     async function handleLogout() {
         try {
-            // Call the backend logout endpoint
-            const response = await authenticatedFetch('http://localhost:8000/api/logout/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (response.ok) {
-                // Clear CSRF token
-                clearCSRFToken();
-                
-                // Clear all authentication cookies
-                document.cookie = 'sessionid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;';
-                document.cookie = 'csrftoken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;';
-                document.cookie = 'username=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;';
-                document.cookie = 'session_ck=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;';
-                
-                // Redirect to login page or home page
-                window.location.href = '/login';
-            } else {
-                console.error('Logout failed:', response.statusText);
-            }
+            await signOut(firebaseAuth);
+            // Firebase auth state will automatically update
+            goto('/login');
         } catch (error) {
             console.error('Error during logout:', error);
-            // Even if the backend call fails, clear the cookies locally
-            clearCSRFToken();
-            document.cookie = 'sessionid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;';
-            document.cookie = 'csrftoken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;';
-            document.cookie = 'username=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;';
-            document.cookie = 'session_ck=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;';
-            window.location.href = '/login';
         }
     }
 </script>

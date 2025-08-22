@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { authenticatedFetch } from '$lib/auth';
 	import { onMount, tick } from 'svelte';
 
 	// Interfaces remain the same
@@ -52,7 +53,7 @@
 
 		isLoading = true;
 		try {
-			const response = await fetch(url, { credentials: 'include' });
+			const response = await authenticatedFetch(url);
 			if (!response.ok) {
 				throw new Error(`HTTP error! status: ${response.status}`);
 			}
@@ -76,7 +77,7 @@
 		selectedBucket = bucket;
 
 		try {
-			const response = await fetch(bucket.url, { credentials: 'include' });
+			const response = await authenticatedFetch(bucket.url);
 			if (!response.ok) {
 				throw new Error(`HTTP error! status: ${response.status}`);
 			}

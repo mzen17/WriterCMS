@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { authenticatedFetch } from '$lib/csrf';
+  import { authenticatedFetch, user as authUser, loading as authLoading } from '$lib/auth';
+  import { goto } from '$app/navigation';
 
   // Define the User interface based on your provided response structure
   interface User {
@@ -32,43 +33,66 @@
   let successMessage: string | null = null;
 
   onMount(async () => {
+    // Wait for Firebase auth to initialize
+    if ($authLoading) {
+      const unsubscribe = authLoading.subscribe((isLoading) => {
+        if (!isLoading) {
+          unsubscribe();
+          loadUserData();
+        }
+      });
+    } else {
+      await loadUserData();
+    }
+  });
+
+  async function loadUserData() {
+    // Check if user is authenticated
+    if (!$authUser) {
+      goto('/login');
+      return;
+    }
+
     try {
-      const response = await fetch('http://localhost:8000/api/users/me', 
-      {credentials: 'include'})
+      const response = await authenticatedFetch('http://localhost:8000/api/users/me/');
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`HTTP error! status: ${response.  status}`);
       }
       user = await response.json();
     } catch (err: any) {
-      error = err.message;
+      error = err.message || 'Failed to load user data';
+      console.error('Error loading user data:', err);
     } finally {
       loading = false;
     }
-  });
+  }
 
   async function handleSubmit() {
     error = null;
     successMessage = null;
+    
+    if (!$authUser) {
+      error = 'You must be logged in to update your profile';
+      return;
+    }
+
     try {
-      const response = await authenticatedFetch(`${user.url}`, {
+      const response = await authenticatedFetch(user.url, {
         method: 'PUT',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(user),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
       }
 
       successMessage = 'Profile updated successfully!';
       // Redirect to homepage after successful update
-      window.location.href = '/';
+      setTimeout(() => goto('/'), 1500);
     } catch (err: any) {
-      error = err.message;
+      error = err.message || 'Failed to update profile';
+      console.error('Error updating profile:', err);
     }
   }
 
@@ -101,25 +125,28 @@
     <form on:submit|preventDefault={handleSubmit} class="space-y-4">
             <h1 class="text-2xl flex font-bold my-4 text-center text-gray-800 dark:text-white">User Settings</h1>
 
-      <div>
-        <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Username</label>
-        <input
-          type="text"
-          id="username"
-          bind:value={user.username}
-          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-        />
+      <!-- Firebase-managed identity fields (read-only) -->
+      <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-md border">
+        <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Account Information (managed by Firebase)</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <span class="block text-sm font-medium text-gray-500 dark:text-gray-400">Username</span>
+            <div class="mt-1 text-sm text-gray-900 dark:text-white">{user.username}</div>
+          </div>
+          
+          <div>
+            <span class="block text-sm font-medium text-gray-500 dark:text-gray-400">Email</span>
+            <div class="mt-1 text-sm text-gray-900 dark:text-white">{user.email}</div>
+          </div>
+        </div>
+        
+        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+          To change your email or username, please update them in your Firebase authentication settings.
+        </p>
       </div>
 
-      <div>
-        <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
-        <input
-          type="email"
-          id="email"
-          bind:value={user.email}
-          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-        />
-      </div>
+      <!-- Editable profile fields -->
 
       <div>
         <label for="first_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">First Name</label>

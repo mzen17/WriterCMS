@@ -4,4 +4,5 @@
 .pytest_cache
 .vscode
 .env
-app/db.sqlite3
+app/*.sqlite3
+app/wcms*.json

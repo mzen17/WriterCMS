@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    # Removed 'rest_framework.authtoken' - using Firebase authentication
     'django_filters', 
     'wcms',
 ]
@@ -51,7 +50,6 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'wcms.firebase_auth.FirebaseAuthenticationMiddleware',  # Add Firebase middleware
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -173,17 +171,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Custom user model
 AUTH_USER_MODEL = 'wcms.WCMSUser'
 
-# Django Authentication Backends
-AUTHENTICATION_BACKENDS = [
-    'wcms.firebase_auth.FirebaseAuthenticationBackend',  # Firebase authentication
-    'django.contrib.auth.backends.ModelBackend',  # Fallback to default backend
-]
-
 # Django REST Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'wcms.firebase_auth.FirebaseAuthentication',
-        # Removed session and token authentication - Firebase only
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',

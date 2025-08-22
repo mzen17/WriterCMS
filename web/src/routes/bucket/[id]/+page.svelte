@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { page } from '$app/stores';
-    import { getCSRFToken } from '$lib/csrf';
+    import { authenticatedFetch, authenticatedPost } from '$lib/auth';
     
     // Reactive state variables for bucket data
     let bucketData: any = $state(null);
@@ -24,6 +24,7 @@
     let editBucketBackground: string = $state('');
     let editBucketTags: string[] = $state([]); // Store as array of tag URLs
     let savingBucket: boolean = $state(false);
+    let deletingBucket: boolean = $state(false);
     let editError: string = $state('');
 
     // Tag management state variables
@@ -33,6 +34,18 @@
     let showTagInput: boolean = $state(false);
     let creatingTag: boolean = $state(false);
     let tagError: string = $state('');
+    
+    // New GitHub-style tag autocomplete variables
+    let tagInputValue: string = $state('');
+    let tagSuggestions: any[] = $state([]);
+    let showTagSuggestions: boolean = $state(false);
+    let selectedTagIndex: number = $state(-1);
+    let tagInputElement: HTMLInputElement | null = $state(null);
+    let loadingSuggestions: boolean = $state(false);
+    let searchTimeout: number | null = null;
+    
+    // Cache for tag URL to name mapping
+    let tagUrlToNameMap: Map<string, string> = $state(new Map());
 
     // Create page dialog state variables
     let showCreatePageDialog: boolean = $state(false);
@@ -44,41 +57,110 @@
     // Get the ID from the route parameters
     let bucketId = $derived($page.params.id);
     
-    // Function to fetch available tags
-    async function fetchAvailableTags() {
-        loadingTags = true;
+    // Function to search tags with debouncing
+    async function searchTags(query: string) {
+        if (!query.trim()) {
+            tagSuggestions = [];
+            showTagSuggestions = false;
+            return;
+        }
+
+        loadingSuggestions = true;
+        
         try {
-            const response = await fetch('http://localhost:8000/api/tags/', {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            });
+            const response = await authenticatedFetch(`http://localhost:8000/api/tags/?tag_name=${encodeURIComponent(query)}`);
             
             if (response.ok) {
                 const data = await response.json();
-                availableTags = data.results;
+                tagSuggestions = data.results.slice(0, 5); // Limit to 5 suggestions
+                showTagSuggestions = tagSuggestions.length > 0;
+                selectedTagIndex = -1;
+                
+                // Cache the tag names from suggestions
+                tagSuggestions.forEach(tag => {
+                    tagUrlToNameMap.set(tag.url, tag.tag_name);
+                });
             } else {
-                console.error('Failed to fetch tags:', response.status);
+                console.error('Failed to fetch tag suggestions:', response.status);
+                tagSuggestions = [];
+                showTagSuggestions = false;
             }
         } catch (err) {
-            console.error('Network error while fetching tags:', err);
+            console.error('Network error while fetching tag suggestions:', err);
+            tagSuggestions = [];
+            showTagSuggestions = false;
         } finally {
-            loadingTags = false;
+            loadingSuggestions = false;
         }
     }
 
-    // Function to create a new tag
-    async function createNewTag() {
-        if (!newTagName.trim()) {
-            tagError = 'Tag name is required';
+    // Function to handle tag input changes with debouncing
+    function handleTagInput(event: Event) {
+        const target = event.target as HTMLInputElement;
+        tagInputValue = target.value;
+        
+        // Clear existing timeout
+        if (searchTimeout !== null) {
+            clearTimeout(searchTimeout);
+        }
+        
+        // Set new timeout for debounced search
+        searchTimeout = setTimeout(() => {
+            searchTags(tagInputValue);
+        }, 300);
+    }
+
+    // Function to handle keyboard navigation in tag input
+    function handleTagKeyDown(event: KeyboardEvent) {
+        if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            if (showTagSuggestions && tagSuggestions.length > 0) {
+                selectedTagIndex = Math.min(selectedTagIndex + 1, tagSuggestions.length - 1);
+            }
+        } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            if (showTagSuggestions && tagSuggestions.length > 0) {
+                selectedTagIndex = Math.max(selectedTagIndex - 1, -1);
+            }
+        } else if (event.key === 'Enter') {
+            event.preventDefault();
+            if (showTagSuggestions && selectedTagIndex >= 0 && selectedTagIndex < tagSuggestions.length) {
+                // Select the highlighted suggestion
+                addTagFromSuggestion(tagSuggestions[selectedTagIndex]);
+            } else {
+                // Create new tag if no suggestion is selected or no matches found
+                createNewTagFromInput();
+            }
+        } else if (event.key === 'Escape') {
+            showTagSuggestions = false;
+            selectedTagIndex = -1;
+            tagInputElement?.blur();
+        }
+    }
+
+    // Function to add a tag from suggestion
+    function addTagFromSuggestion(tag: any) {
+        if (!editBucketTags.includes(tag.url)) {
+            editBucketTags = [...editBucketTags, tag.url];
+            // Cache the tag name for later use
+            tagUrlToNameMap.set(tag.url, tag.tag_name);
+        }
+        tagInputValue = '';
+        tagSuggestions = [];
+        showTagSuggestions = false;
+        selectedTagIndex = -1;
+        tagInputElement?.focus();
+    }
+
+    // Function to create new tag from input
+    async function createNewTagFromInput() {
+        if (!tagInputValue.trim()) {
             return;
         }
 
         // Validate tag name
         const tagNameRegex = /^[a-zA-Z\-_\/]+$/;
-        if (!tagNameRegex.test(newTagName) || newTagName.length > 20) {
+        if (!tagNameRegex.test(tagInputValue) || tagInputValue.length > 20) {
             tagError = 'Tag name can only contain letters, hyphens, underscores, and slashes, and must be 20 characters or less';
             return;
         }
@@ -87,26 +169,23 @@
         tagError = '';
 
         try {
-            const csrfToken = await getCSRFToken();
-            const response = await fetch('http://localhost:8000/api/tags/', {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
-                },
-                body: JSON.stringify({
-                    tag_name: newTagName.trim(),
+            const response = await authenticatedPost('http://localhost:8000/api/tags/', 
+                JSON.stringify({
+                    tag_name: tagInputValue.trim(),
                     tag_description: ''
                 })
-            });
+            );
 
             if (response.ok) {
                 const newTag = await response.json();
                 availableTags = [...availableTags, newTag];
                 editBucketTags = [...editBucketTags, newTag.url];
-                newTagName = '';
-                showTagInput = false;
+                tagUrlToNameMap.set(newTag.url, newTag.tag_name);
+                tagInputValue = '';
+                tagSuggestions = [];
+                showTagSuggestions = false;
+                selectedTagIndex = -1;
+                tagInputElement?.focus();
             } else {
                 const errorData = await response.json().catch(() => ({}));
                 tagError = errorData.detail || errorData.error || `Failed to create tag: ${response.status}`;
@@ -119,12 +198,12 @@
         }
     }
 
-    // Function to toggle tag selection
-    function toggleTag(tagUrl: string) {
-        if (editBucketTags.includes(tagUrl)) {
-            editBucketTags = editBucketTags.filter(url => url !== tagUrl);
-        } else {
-            editBucketTags = [...editBucketTags, tagUrl];
+    // Function to hide suggestions when clicking outside
+    function handleClickOutside(event: MouseEvent) {
+        const target = event.target as Element;
+        if (!target.closest('.tag-input-container')) {
+            showTagSuggestions = false;
+            selectedTagIndex = -1;
         }
     }
 
@@ -135,8 +214,40 @@
 
     // Function to get tag name by URL
     function getTagNameByUrl(tagUrl: string): string {
+        // First check our cached mapping
+        const cachedName = tagUrlToNameMap.get(tagUrl);
+        if (cachedName) return cachedName;
+        
+        // Check available tags
         const tag = availableTags.find(t => t.url === tagUrl);
-        return tag ? tag.tag_name : '';
+        if (tag) {
+            tagUrlToNameMap.set(tagUrl, tag.tag_name);
+            return tag.tag_name;
+        }
+        
+        // Check suggestions
+        const suggestionTag = tagSuggestions.find(t => t.url === tagUrl);
+        if (suggestionTag) {
+            tagUrlToNameMap.set(tagUrl, suggestionTag.tag_name);
+            return suggestionTag.tag_name;
+        }
+        
+        // If we have bucket data and both tags and tag_names arrays have the same length,
+        // try to map them by index (this is a fallback for initial load)
+        if (bucketData && bucketData.tags && bucketData.tag_names && 
+            bucketData.tags.length === bucketData.tag_names.length) {
+            const tagIndex = bucketData.tags.findIndex((url: string) => url === tagUrl);
+            if (tagIndex >= 0 && tagIndex < bucketData.tag_names.length) {
+                const tagName = bucketData.tag_names[tagIndex];
+                tagUrlToNameMap.set(tagUrl, tagName);
+                return tagName;
+            }
+        }
+        
+        // Last resort: extract from URL
+        const urlParts = tagUrl.split('/');
+        const lastPart = urlParts[urlParts.length - 2] || urlParts[urlParts.length - 1];
+        return lastPart || 'Unknown';
     }
 
     // Function to fetch bucket data
@@ -145,14 +256,8 @@
         error = '';
         
         try {
-            const response = await fetch(`http://localhost:8000/api/buckets/${id}/`, {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            });
-            
+            const response = await authenticatedFetch(`http://localhost:8000/api/buckets/${id}/`);
+                console.log("PRINTED!")
             if (response.ok) {
                 bucketData = await response.json();
             } else {
@@ -204,7 +309,22 @@
             editBucketBackground = bucketData.background || '';
             editBucketTags = bucketData.tags || [];
             editError = '';
-            fetchAvailableTags(); // Load available tags when opening dialog
+            
+            // Initialize tag name mapping if we have both tags and tag_names
+            if (bucketData.tags && bucketData.tag_names && 
+                bucketData.tags.length === bucketData.tag_names.length) {
+                tagUrlToNameMap.clear();
+                bucketData.tags.forEach((tagUrl: string, index: number) => {
+                    tagUrlToNameMap.set(tagUrl, bucketData.tag_names[index]);
+                });
+            }
+            
+            // Reset tag input state
+            tagInputValue = '';
+            tagSuggestions = [];
+            showTagSuggestions = false;
+            selectedTagIndex = -1;
+            tagError = '';
         }
     }
 
@@ -218,9 +338,15 @@
         editBucketBackground = '';
         editBucketTags = [];
         editError = '';
+        // Reset tag input state
+        tagInputValue = '';
+        tagSuggestions = [];
+        showTagSuggestions = false;
+        selectedTagIndex = -1;
+        tagError = '';
         newTagName = '';
         showTagInput = false;
-        tagError = '';
+        deletingBucket = false;
     }
 
     // Function to save bucket edits
@@ -234,31 +360,22 @@
         editError = '';
 
         try {
-            const csrfToken = await getCSRFToken();
-            
-            const response = await fetch(`http://localhost:8000/api/buckets/${bucketId}/`, {
-                method: 'PUT',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
-                },
-                body: JSON.stringify({
+            let body = {
                     name: editBucketName.trim(),
                     description: editBucketDescription.trim(),
                     visibility: editBucketVisibility,
                     banner: editBucketBanner.trim(),
                     background: editBucketBackground.trim(),
                     tags: editBucketTags
-                })
-            });
+            }
+            const response = await authenticatedPost(`http://localhost:8000/api/buckets/${bucketId}/`,body, 'PUT');
 
             if (response.ok) {
                 const updatedBucket = await response.json();
                 console.log('Bucket updated successfully:', updatedBucket);
                 closeEditBucketDialog();
                 await fetchBucketData(bucketId);
-                window.location.href = "/bucket/" + bucketData.bucket_owner_slug
+                window.location.href = bucketData.bucket_owner_slug ? "/bucket/" + bucketData.bucket_owner_slug : "/";
             } else {
                 const errorData = await response.json().catch(() => ({}));
                 editError = errorData.detail || errorData.error || `Failed to update bucket: ${response.status}`;
@@ -269,6 +386,45 @@
             console.error('Update bucket error:', err);
         } finally {
             savingBucket = false;
+        }
+    }
+
+    // Function to delete the current bucket
+    async function deleteBucket() {
+        if (!bucketData || !bucketData.slug) {
+            alert('Unable to delete: bucket information is incomplete');
+            return;
+        }
+
+        // Ask for confirmation
+        const confirmed = confirm('Are you sure you want to delete this bucket? This action cannot be undone.');
+        if (!confirmed) {
+            return;
+        }
+
+        deletingBucket = true;
+        editError = '';
+
+        try {
+            
+            const response = await authenticatedFetch(`http://localhost:8000/api/buckets/${bucketData.slug}/`, {method: 'DELETE'})
+
+            if (response.ok) {
+                console.log('Bucket deleted successfully');
+                closeEditBucketDialog();
+                // Navigate to parent bucket or root
+                window.location.href = bucketData.bucket_owner ? '/bucket/' + bucketData.bucket_owner_slug : '/';
+            } else {
+                const errorData = await response.json().catch(() => ({}));
+                const errorMessage = errorData.detail || errorData.error || `Failed to delete bucket: ${response.status}`;
+                alert(errorMessage);
+                console.error('Delete bucket error:', errorData);
+            }
+        } catch (err) {
+            alert('Network error while deleting bucket');
+            console.error('Delete bucket error:', err);
+        } finally {
+            deletingBucket = false;
         }
     }
 
@@ -283,24 +439,17 @@
         createError = '';
 
         try {
-            const csrfToken = await getCSRFToken();
-            const response = await fetch('http://localhost:8000/api/buckets/', {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
-                },
-                body: JSON.stringify({
-                    name: newBucketName.trim(),
-                    bucket_owner: bucketData.url,
-                    visibility: newBucketVisibility,
-                    tags: [],
-                    description: '',
-                    banner: '',
-                    background: ''
-                })
-            });
+            let body = {
+                name: newBucketName.trim(),
+                bucket_owner: bucketData.url,
+                visibility: newBucketVisibility,
+                tags: [],
+                description: '',
+                banner: '',
+                background: ''
+            }
+
+            const response = await authenticatedPost('http://localhost:8000/api/buckets/', body);
 
             if (response.ok) {
                 const newBucket = await response.json();
@@ -348,29 +497,14 @@
         createPageError = '';
 
         try {
-            const csrfToken = await getCSRFToken();
-            const response = await fetch('http://localhost:8000/api/pages/', {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
-                },
-                body: JSON.stringify({
+            let body = {
                     title: newPageTitle.trim(),
                     description: '',
                     porder: 1,
                     public: newPagePublic,
                     bucket: bucketData.url
-                })
-            });
-            console.log(JSON.stringify({
-                    title: newPageTitle.trim(),
-                    description: '',
-                    porder: 1,
-                    public: newPagePublic,
-                    bucket: bucketData.url
-                }))
+                }
+            const response = await authenticatedPost('http://localhost:8000/api/pages/', body);
 
             if (response.ok) {
                 const newPage = await response.json();
@@ -397,6 +531,17 @@
         if (bucketId) {
             fetchBucketData(bucketId);
         }
+        
+        // Add click outside listener for tag suggestions
+        document.addEventListener('click', handleClickOutside);
+        
+        // Cleanup on unmount
+        return () => {
+            document.removeEventListener('click', handleClickOutside);
+            if (searchTimeout !== null) {
+                clearTimeout(searchTimeout);
+            }
+        };
     });
 </script>
 
@@ -759,7 +904,7 @@
                     bind:value={editBucketName}
                     placeholder="Enter bucket name"
                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                    disabled={savingBucket}
+                    disabled={savingBucket || deletingBucket}
                 />
             </div>
             
@@ -774,7 +919,7 @@
                     placeholder="Enter bucket description"
                     rows="3"
                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                    disabled={savingBucket}
+                    disabled={savingBucket || deletingBucket}
                 ></textarea>
             </div>
             
@@ -789,7 +934,7 @@
                     bind:value={editBucketBanner}
                     placeholder="Enter banner image URL"
                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                    disabled={savingBucket}
+                    disabled={savingBucket || deletingBucket}
                 />
             </div>
             
@@ -804,7 +949,7 @@
                     bind:value={editBucketBackground}
                     placeholder="Enter background image URL"
                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                    disabled={savingBucket}
+                    disabled={savingBucket || deletingBucket}
                 />
             </div>
             
@@ -825,7 +970,7 @@
                                         type="button"
                                         onclick={() => removeTag(tagUrl)}
                                         class="ml-1 text-blue-600 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-100"
-                                        disabled={savingBucket}
+                                        disabled={savingBucket || deletingBucket}
                                     >
                                         ×
                                     </button>
@@ -835,94 +980,79 @@
                     </div>
                 {/if}
                 
-                <!-- Available tags dropdown -->
-                {#if !loadingTags && availableTags.length > 0}
-                    <div class="mb-3">
-                        <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">
-                            Select from existing tags:
-                        </label>
-                        <div class="max-h-32 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-md p-2 bg-white dark:bg-gray-700">
-                            {#each availableTags as tag}
-                                <label class="flex items-center space-x-2 p-1 hover:bg-gray-50 dark:hover:bg-gray-600 rounded cursor-pointer">
-                                    <button
-                                        type="button"
-                                        onclick={() => toggleTag(tag.url)}
-                                        class={`relative inline-flex w-10 h-5 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${editBucketTags.includes(tag.url) ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-600'} ${savingBucket ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                                        disabled={savingBucket}
-                                    >
-                                        <span class={`inline-block w-3 h-3 transform transition-transform bg-white rounded-full shadow-sm ${editBucketTags.includes(tag.url) ? 'translate-x-6' : 'translate-x-1'}`}></span>
-                                    </button>
-                                    <span class="text-sm text-gray-700 dark:text-gray-300">
-                                        {tag.tag_name}
-                                        {#if tag.tag_description}
-                                            <span class="text-xs text-gray-500 dark:text-gray-400">
-                                                - {tag.tag_description}
+                <!-- GitHub-style tag input with autocomplete -->
+                <div class="tag-input-container relative">
+                    <input
+                        bind:this={tagInputElement}
+                        type="text"
+                        bind:value={tagInputValue}
+                        oninput={handleTagInput}
+                        onkeydown={handleTagKeyDown}
+                        placeholder="Type to search or create tags..."
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                        disabled={savingBucket || deletingBucket || creatingTag}
+                    />
+                    
+                    <!-- Loading indicator -->
+                    {#if loadingSuggestions}
+                        <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                            <svg class="animate-spin h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </div>
+                    {/if}
+                    
+                    <!-- Suggestions dropdown -->
+                    {#if showTagSuggestions && tagSuggestions.length > 0}
+                        <div class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                            {#each tagSuggestions as suggestion, index}
+                                <button
+                                    type="button"
+                                    onclick={() => addTagFromSuggestion(suggestion)}
+                                    class={`w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors ${index === selectedTagIndex ? 'bg-blue-50 dark:bg-blue-900/30' : ''}`}
+                                    disabled={savingBucket || deletingBucket}
+                                >
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-900 dark:text-gray-100">
+                                            #{suggestion.tag_name}
+                                        </span>
+                                        {#if editBucketTags.includes(suggestion.url)}
+                                            <span class="text-xs text-green-600 dark:text-green-400">
+                                                ✓ Added
                                             </span>
                                         {/if}
-                                    </span>
-                                </label>
+                                    </div>
+                                    {#if suggestion.tag_description}
+                                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                            {suggestion.tag_description}
+                                        </div>
+                                    {/if}
+                                </button>
                             {/each}
                         </div>
-                    </div>
-                {:else if loadingTags}
-                    <div class="mb-3 text-sm text-gray-500 dark:text-gray-400">
-                        Loading tags...
+                    {/if}
+                    
+                    <!-- No matches / create new hint -->
+                    {#if tagInputValue.trim() && !loadingSuggestions && (!showTagSuggestions || tagSuggestions.length === 0)}
+                        <div class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg">
+                            <div class="px-3 py-2 text-sm text-gray-600 dark:text-gray-400">
+                                No matching tags found. Press Enter to create "{tagInputValue}"
+                            </div>
+                        </div>
+                    {/if}
+                </div>
+                
+                <!-- Error message -->
+                {#if tagError}
+                    <div class="mt-2 text-sm text-red-600 dark:text-red-400">
+                        {tagError}
                     </div>
                 {/if}
                 
-                <!-- Create new tag section -->
-                <div class="mb-3">
-                    {#if !showTagInput}
-                        <button
-                            type="button"
-                            onclick={() => { showTagInput = true; tagError = ''; }}
-                            class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 transition-colors"
-                            disabled={savingBucket}
-                        >
-                            + Create new tag
-                        </button>
-                    {:else}
-                        <div class="space-y-2">
-                            <label class="block text-sm text-gray-600 dark:text-gray-400">
-                                Create new tag:
-                            </label>
-                            <div class="flex gap-2">
-                                <input
-                                    type="text"
-                                    bind:value={newTagName}
-                                    placeholder="Tag name (letters, -, _, / only)"
-                                    maxlength="20"
-                                    class="flex-1 px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                                    disabled={creatingTag || savingBucket}
-                                />
-                                <button
-                                    type="button"
-                                    onclick={createNewTag}
-                                    class="px-3 py-1 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                    disabled={creatingTag || savingBucket || !newTagName.trim()}
-                                >
-                                    {#if creatingTag}
-                                        Creating...
-                                    {:else}
-                                        Add
-                                    {/if}
-                                </button>
-                                <button
-                                    type="button"
-                                    onclick={() => { showTagInput = false; newTagName = ''; tagError = ''; }}
-                                    class="px-3 py-1 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md transition-colors"
-                                    disabled={creatingTag || savingBucket}
-                                >
-                                    Cancel
-                                </button>
-                            </div>
-                            {#if tagError}
-                                <div class="text-sm text-red-600 dark:text-red-400">
-                                    {tagError}
-                                </div>
-                            {/if}
-                        </div>
-                    {/if}
+                <!-- Help text -->
+                <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    Type to search existing tags or create new ones. Use ↑↓ to navigate, Enter to select.
                 </div>
             </div>
             
@@ -932,8 +1062,8 @@
                     <button
                         type="button"
                         onclick={() => editBucketVisibility = !editBucketVisibility}
-                        class={`relative inline-flex w-12 h-6 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${editBucketVisibility ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'} ${savingBucket ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                        disabled={savingBucket}
+                        class={`relative inline-flex w-12 h-6 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${editBucketVisibility ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'} ${(savingBucket || deletingBucket) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                        disabled={savingBucket || deletingBucket}
                     >
                         <span class={`inline-block w-4 h-4 transform transition-transform bg-white rounded-full shadow-md ${editBucketVisibility ? 'translate-x-7' : 'translate-x-1'}`}></span>
                     </button>
@@ -944,33 +1074,54 @@
             </div>
             
             <!-- Action buttons -->
-            <div class="flex justify-end space-x-3">
+            <div class="flex justify-between items-center">
                 <button
                     type="button"
-                    onclick={closeEditBucketDialog}
-                    class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md transition-colors"
-                    disabled={savingBucket}
+                    onclick={deleteBucket}
+                    class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={savingBucket || deletingBucket}
                 >
-                    Cancel
-                </button>
-                <button
-                    type="button"
-                    onclick={saveEditedBucket}
-                    class="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={savingBucket || !editBucketName.trim()}
-                >
-                    {#if savingBucket}
+                    {#if deletingBucket}
                         <span class="flex items-center">
                             <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
-                            Saving...
+                            Deleting...
                         </span>
                     {:else}
-                        Save
+                        Delete
                     {/if}
                 </button>
+                
+                <div class="flex space-x-3">
+                    <button
+                        type="button"
+                        onclick={closeEditBucketDialog}
+                        class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md transition-colors"
+                        disabled={savingBucket || deletingBucket}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        onclick={saveEditedBucket}
+                        class="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={savingBucket || deletingBucket || !editBucketName.trim()}
+                    >
+                        {#if savingBucket}
+                            <span class="flex items-center">
+                                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Saving...
+                            </span>
+                        {:else}
+                            Save
+                        {/if}
+                    </button>
+                </div>
             </div>
         </div>
     </div>

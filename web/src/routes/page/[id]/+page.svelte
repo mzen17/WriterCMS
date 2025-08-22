@@ -2,7 +2,9 @@
 
     import { page } from '$app/stores';
     import { goto } from '$app/navigation';
+    import { authenticatedFetch, authenticatedPost } from '$lib/auth';
     
+
     // Reactive state variables for page data
     let pageData: any = $state(null);
     let loading: boolean = $state(true);
@@ -30,13 +32,7 @@
         error = '';
         
         try {
-            const response = await fetch(`http://localhost:8000/api/pages/${id}/`, {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            });
+            const response = await authenticatedFetch(`http://localhost:8000/api/pages/${id}/`);
             
             if (response.ok) {
                 pageData = await response.json();
@@ -101,7 +97,7 @@
     </div>
 
     <main class="flex justify-center min-h-screen relative">        
-        <article id="page_content" class="md:w-[600px] md:p-4 flex flex-col min-h-screen relative z-10 'backdrop-blur-sm bg-white bg-opacity-90 dark:bg-gray-900 dark:bg-opacity-90 rounded-lg shadow-lg m-0.5 p-4">
+        <article id="page_content" class="md:w-[600px] md:p-4 flex flex-col min-h-screen relative z-10 backdrop-blur-sm bg-white bg-opacity-90 dark:bg-gray-900 dark:bg-opacity-90 rounded-lg shadow-lg m-0.5 p-4">
             <header class="mb-1.5 mt-5">
                 <div class="flex items-center gap-3 mb-1.5">
                     <h2 

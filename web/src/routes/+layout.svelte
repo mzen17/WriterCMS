@@ -1,51 +1,47 @@
 <script lang="ts">
 	import '../app.css';
 	import Navbar from '$lib/app/Navbar.svelte';
+    import { user, loading, authenticatedFetch } from '$lib/auth';
     import { onMount } from 'svelte';
+
     // Reactive state variables to hold user data
     let username: string = $state('Loading...');
     let pfp: string = $state(''); // Profile picture URL or base64
     let auth: boolean = $state(false);
 	let darkmode: boolean = $state(false);
 
-    // Function to fetch user data
-    async function fetchUserData() {
-
-        try {
-            const response = await fetch('http://localhost:8000/api/users/me/', {
-                method: 'GET',
-				credentials: 'include', // Important: include cookies
-                headers: {
-                    'Content-Type': 'application/json',
+    // Function to update user data based on Firebase auth state
+    async function updateUserData(firebaseUser: any) {
+        if (firebaseUser) {
+            auth = true;
+            
+            // Optionally sync with Django backend to get additional user data
+            try {
+                const response = await authenticatedFetch('http://localhost:8000/api/users/me/');
+                if (response.ok) {
+                    const userData = await response.json();
+                    // Update with backend data if available
+                    if (userData.first_name) username = userData.first_name
+                    if (userData.pfp) pfp = userData.pfp;
+                    if (userData.theme !== undefined) darkmode = userData.theme;
                 }
-            });
-
-            if (response.ok) {
-                const userData = await response.json();
-                console.log("User data fetched successfully:", userData);
-                username = userData.username || 'User'; // Fallback username
-                pfp = userData.pfp || 'https://placehold.co/40x40/cccccc/000000?text=PFP'; // Fallback PFP
-				darkmode = userData.theme //;
-                auth = true;
-            } else {
-                const errorData = await response.json().catch(() => ({}));
-                console.error(`Failed to fetch user data: ${response.status} ${response.statusText}`, errorData);
-                username = 'Login';
-				darkmode = false;
-                pfp = '';
-                auth = false;
+            } catch (error) {
+                console.log('Could not fetch additional user data from backend:', error);
+                // Continue with Firebase data only
             }
-        } catch (error) {
-            console.error('Network error while fetching user data:', error);
-            username = 'Oh Dear, Network got Fked.';
+        } else {
+            username = 'Login';
             pfp = '';
             auth = false;
+            darkmode = false;
         }
     }
 
-    // Call fetchUserData when the component mounts
-    onMount(() => {
-        fetchUserData();
+    // Subscribe to Firebase auth state changes
+    $effect(() => {
+        if (!$loading) {
+            updateUserData($user);
+        }
     });
 
     // The children slot will render the content passed to this layout component
