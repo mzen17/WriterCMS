@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """ 
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,16 +24,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-f@r2yg7y^+clz3g^p66sju4dwg($m4apqmj=7dk&#6o-@qnmkg'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    'wcms-api.starlitex.com'
+]
 
 
 # Application definition
 
 INSTALLED_APPS = [
     'corsheaders',
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -125,6 +128,19 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# Override with PostgreSQL if environment variables are set
+if os.getenv('dbtype') == 'pgsql':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('dbname'),
+            'USER': os.getenv('user'),
+            'PASSWORD': os.getenv('password'),
+            'HOST': os.getenv('url', 'localhost'),
+            'PORT': os.getenv('port', '5432'),
+        }
+    }
 
 
 # Password validation
