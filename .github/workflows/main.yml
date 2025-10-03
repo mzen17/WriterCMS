@@ -1,10 +1,6 @@
-name: Deploy StarCMS via SSH Key (with pre-defined Host Key)
+name: Deploy StarCMS via SSH Key
 
 on:
-  push:
-    branches:
-      - main
-  # You can keep workflow_dispatch if you still want the option to trigger manually
   workflow_dispatch:
 
 jobs:
