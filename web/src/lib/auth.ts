@@ -36,6 +36,10 @@ if (browser) {
   authReady = Promise.resolve();
 }
 
+function get_backend_url() {
+  return import.meta.env.VITE_ENVIRON === 'prod' ? "https://wcms-api.starlitex.com" : "http://localhost:8000";
+}
+
 /**
  * Gets the current user's Firebase ID token.
  * It waits for the initial auth check to complete.
@@ -72,7 +76,8 @@ export async function authenticatedFetch(url: string, options: RequestInit = {})
     // For GET requests without credentials, proceed without token
     if (!options.method || options.method.toUpperCase() === 'GET') {
         console.log(options)
-      return fetch(url, options);
+      const fullUrl = url.startsWith('h') ? url : get_backend_url() + url;
+      return fetch(fullUrl, options);
     }
     
     // For non-GET requests, authentication is required
@@ -82,7 +87,9 @@ export async function authenticatedFetch(url: string, options: RequestInit = {})
   const headers = new Headers(options.headers);
   headers.set('Authorization', `Bearer ${token}`);
   
-  return fetch(url, { ...options, headers });
+
+  const fullUrl = url.startsWith('h') ? url : get_backend_url() + url;
+  return fetch(fullUrl, { ...options, headers });
 }
 
 /**

@@ -20,7 +20,7 @@ class WCMSUser(AbstractUser):
     )
 
     # Firebase Authentication
-    firebase_uid = models.CharField(max_length=128, unique=True, null=True, blank=True)
+    username = models.CharField(max_length=128, unique=True, null=False, blank=False)
     
     # Existing WCMS fields
     pfp = models.CharField(max_length=255, blank=True, null=True)

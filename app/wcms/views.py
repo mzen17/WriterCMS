@@ -73,7 +73,9 @@ class WCMSUserViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def me(self, request):
         """Get current user's profile"""
+        print(request.data)
         serializer = self.get_serializer(request.user)
+        print(serializer.data)
         return Response(serializer.data)
 
 

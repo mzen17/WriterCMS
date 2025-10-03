@@ -11,30 +11,27 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         USER_DATA = [
             {
-                'username': 'testuser3@gmail.com',
                 'email': "testuser3@gmail.com", 
                 'first_name': 'John', 
                 'last_name': 'Smith', 
                 'bio': 'Tech writer and blogger passionate about AI and web development.', 
-                'firebase_uid':'2OboAl7T7zXciM8y4YM5CjunICI3',
+                'username':'2OboAl7T7zXciM8y4YM5CjunICI3',
                 'pfp':'https://static.wikia.nocookie.net/shadowslave/images/8/87/Sunny_midjourney_art.png/revision/latest?cb=20231127110610'
             },
             {
-                'username': 'testuser2@gmail.com', 
                 'email': 'testuser2@gmail.com', 
                 'first_name': 'Ena', 
-                'firebase_uid': '1m1emFHVQbSybWl0nlgeo38W4ns1',
+                'username': '1m1emFHVQbSybWl0nlgeo38W4ns1',
                 'last_name': 'Guo', 
                 'bio': 'Full-stack developer and open source contributor.',
                 'pfp':'https://preview.redd.it/drop-your-best-furina-wallpaper-and-pfp-v0-g9vs3awrtt1c1.png'
 
             },
             {
-                'username': 'testuser1@gmail.com', 
                 'email': 'testuser1@gmail.com', 
                 'first_name': 'Abigail', 
                 'last_name': 'Chen', 
-                'firebase_uid':'BWOocf2KHabqngSHxS2A6wTvTsK2',
+                'username':'BWOocf2KHabqngSHxS2A6wTvTsK2',
                 'bio': 'UI/UX designer with a love for minimalist interfaces.',
                 'pfp':'https://preview.redd.it/lotm-general-i-had-to-im-sorry-v0-h994csv0zihf1.jpeg'
             },
@@ -94,13 +91,12 @@ class Command(BaseCommand):
         
         for user_blob in USER_DATA:
             user = User.objects.create_user(
-                username=user_blob['username'],
                 email=user_blob['email'],
                 first_name=user_blob['first_name'],
                 last_name=user_blob['last_name'],
                 bio=user_blob['bio'],
                 pfp=user_blob['pfp'],
-                firebase_uid=user_blob['firebase_uid'],
+                username=user_blob['username'],
                 dictionary=random.choice(['en-US', 'en-GB']),
                 theme=random.choice([True, False])
             )

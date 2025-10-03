@@ -12,10 +12,10 @@ class WCMSUserAdmin(UserAdmin):
     ]
     
     # Fields to display in the list view
-    list_display = ['username', 'email', 'first_name', 'last_name', 'is_staff', 'theme']
+    list_display = ['email', 'first_name', 'last_name', 'is_staff', 'theme']
     
     # Fields that can be searched
-    search_fields = ['username', 'email', 'first_name', 'last_name']
+    search_fields = ['email', 'first_name', 'last_name']
 
 # Register the custom user model
 admin.site.register(WCMSUser, WCMSUserAdmin)

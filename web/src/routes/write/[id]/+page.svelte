@@ -74,7 +74,7 @@
         error = '';
         
         try {
-            const response = await authenticatedFetch(`http://localhost:8000/api/pages/${id}/`);
+            const response = await authenticatedFetch(`/api/pages/${id}/`);
             
             if (response.ok) {
                 pageData = await response.json();
@@ -357,7 +357,7 @@
         if (!pageData?.slug) return [];
         
         try {
-            const response = await authenticatedFetch(`http://localhost:8000/api/pages/${pageData.slug}/revisions/list/`);
+            const response = await authenticatedFetch(`/api/pages/${pageData.slug}/revisions/list/`);
             
             if (response.ok) {
                 const revisions = await response.json();
@@ -742,7 +742,7 @@
                 bucket: pageData.bucket
             };
 
-            const metadataResponse = await authenticatedPost(`http://localhost:8000/api/pages/${pageID}/`, metadataUpdateData, 'PUT');
+            const metadataResponse = await authenticatedPost(`/api/pages/${pageID}/`, metadataUpdateData, 'PUT');
 
             if (!metadataResponse.ok) {
                 const errorData = await metadataResponse.json().catch(() => ({}));
@@ -765,7 +765,7 @@
                     content: encodedCurrentContent
                 };
 
-                const revisionResponse = await authenticatedPost(`http://localhost:8000/api/pages/${pageID}/revisions/`, revisionData);
+                const revisionResponse = await authenticatedPost(`/api/pages/${pageID}/revisions/`, revisionData);
 
                 if (!revisionResponse.ok) {
                     const errorData = await revisionResponse.json().catch(() => ({}));
@@ -809,7 +809,7 @@
         if (!confirmDelete) return;
 
         try {
-            const response = await authenticatedFetch(`http://localhost:8000/api/pages/${pageID}/`,
+            const response = await authenticatedFetch(`/api/pages/${pageID}/`,
                 {
                     method: 'DELETE',
                     credentials: 'include'

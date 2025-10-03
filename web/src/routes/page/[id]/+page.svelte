@@ -2,15 +2,13 @@
 
     import { page } from '$app/stores';
     import { goto } from '$app/navigation';
-    import { authenticatedFetch, authenticatedPost } from '$lib/auth';
+    import { authenticatedFetch } from '$lib/auth';
     
 
     // Reactive state variables for page data
     let pageData: any = $state(null);
     let loading: boolean = $state(true);
     let error: string = $state('');
-    let backgroundImageLoaded: boolean = $state(false);
-    let backgroundImageError: boolean = $state(false);
     
     // Get the ID from the route parameters
     let pageID = $derived($page.params.id);
@@ -32,7 +30,7 @@
         error = '';
         
         try {
-            const response = await authenticatedFetch(`http://localhost:8000/api/pages/${id}/`);
+            const response = await authenticatedFetch(`/api/pages/${id}/`);
             
             if (response.ok) {
                 pageData = await response.json();

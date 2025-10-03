@@ -1,12 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { authenticatedFetch, user as authUser, loading as authLoading } from '$lib/auth';
+  import { authenticatedFetch, authenticatedPost, user as authUser, loading as authLoading } from '$lib/auth';
   import { goto } from '$app/navigation';
 
   // Define the User interface based on your provided response structure
   interface User {
     url: string;
-    username: string;
     email: string;
     first_name: string;
     last_name: string;
@@ -18,7 +17,6 @@
 
   let user: User = {
     url: '',
-    username: '',
     email: '',
     first_name: '',
     last_name: '',
@@ -54,7 +52,7 @@
     }
 
     try {
-      const response = await authenticatedFetch('http://localhost:8000/api/users/me/');
+      const response = await authenticatedFetch('/api/users/me/');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.  status}`);
       }
@@ -77,10 +75,7 @@
     }
 
     try {
-      const response = await authenticatedFetch(user.url, {
-        method: 'PUT',
-        body: JSON.stringify(user),
-      });
+      const response = await authenticatedPost(user.url, user, 'PUT')
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -127,18 +122,14 @@
 
       <!-- Firebase-managed identity fields (read-only) -->
       <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-md border">
-        <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Account Information (managed by Firebase)</h3>
+        <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Account Information</h3>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <span class="block text-sm font-medium text-gray-500 dark:text-gray-400">Username</span>
-            <div class="mt-1 text-sm text-gray-900 dark:text-white">{user.username}</div>
-          </div>
-          
           <div>
             <span class="block text-sm font-medium text-gray-500 dark:text-gray-400">Email</span>
             <div class="mt-1 text-sm text-gray-900 dark:text-white">{user.email}</div>
           </div>
+          
         </div>
         
         <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">

@@ -200,11 +200,6 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
 
-# Firebase Configuration
-# Add your Firebase service account key path here
-# FIREBASE_SERVICE_ACCOUNT_KEY_PATH = '/path/to/your/firebase-service-account-key.json'
-# If not set, the default application credentials will be used
-
 # Logging configuration
 LOGGING = {
     'version': 1,

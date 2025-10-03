@@ -12,14 +12,13 @@ from django.contrib.auth import get_user_model
 
 class WCMSUserSerializer(serializers.HyperlinkedModelSerializer):
     # Firebase handles authentication and user identity
-    firebase_uid = serializers.CharField(read_only=True)
     username = serializers.CharField(read_only=True)
     email = serializers.EmailField(read_only=True)
     
     class Meta:
         model = wm.WCMSUser
-        fields = ['url', 'username', 'email', 'first_name', 'last_name', 'pfp', 'bio', 'dictionary', 'theme', 'firebase_uid']
-        read_only_fields = ['firebase_uid', 'username', 'email']  # Firebase manages these fields
+        fields = ['url', 'email', 'first_name', 'last_name', 'pfp', 'bio', 'dictionary', 'theme', 'username']
+        read_only_fields = ['username', 'email']  # Firebase manages these fields
     
     def create(self, validated_data):
         # Firebase users are created automatically by the authentication backend
@@ -49,7 +48,7 @@ class PageSummarySerializer(serializers.ModelSerializer):
 
 class BucketSerializer(serializers.HyperlinkedModelSerializer):
     # Add custom fields for hydrated data
-    user_owner_name = serializers.CharField(source='user_owner.username', read_only=True)
+    user_owner_name = serializers.CharField(source='user_owner.email', read_only=True)
     bucket_owner_name = serializers.CharField(source='bucket_owner.name', read_only=True)
     bucket_owner_slug = serializers.CharField(source='bucket_owner.slug', read_only=True)
     can_edit = serializers.SerializerMethodField()

@@ -68,7 +68,7 @@
         loadingSuggestions = true;
         
         try {
-            const response = await authenticatedFetch(`http://localhost:8000/api/tags/?tag_name=${encodeURIComponent(query)}`);
+            const response = await authenticatedFetch(`/api/tags/?tag_name=${encodeURIComponent(query)}`);
             
             if (response.ok) {
                 const data = await response.json();
@@ -169,7 +169,7 @@
         tagError = '';
 
         try {
-            const response = await authenticatedPost('http://localhost:8000/api/tags/', 
+            const response = await authenticatedPost('/api/tags/', 
                 JSON.stringify({
                     tag_name: tagInputValue.trim(),
                     tag_description: ''
@@ -256,8 +256,7 @@
         error = '';
         
         try {
-            const response = await authenticatedFetch(`http://localhost:8000/api/buckets/${id}/`);
-                console.log("PRINTED!")
+            const response = await authenticatedFetch(`/api/buckets/${id}/`);
             if (response.ok) {
                 bucketData = await response.json();
             } else {
@@ -368,7 +367,7 @@
                     background: editBucketBackground.trim(),
                     tags: editBucketTags
             }
-            const response = await authenticatedPost(`http://localhost:8000/api/buckets/${bucketId}/`,body, 'PUT');
+            const response = await authenticatedPost(`/api/buckets/${bucketId}/`,body, 'PUT');
 
             if (response.ok) {
                 const updatedBucket = await response.json();
@@ -407,7 +406,7 @@
 
         try {
             
-            const response = await authenticatedFetch(`http://localhost:8000/api/buckets/${bucketData.slug}/`, {method: 'DELETE'})
+            const response = await authenticatedFetch(`/api/buckets/${bucketData.slug}/`, {method: 'DELETE'})
 
             if (response.ok) {
                 console.log('Bucket deleted successfully');
@@ -449,7 +448,7 @@
                 background: ''
             }
 
-            const response = await authenticatedPost('http://localhost:8000/api/buckets/', body);
+            const response = await authenticatedPost('/api/buckets/', body);
 
             if (response.ok) {
                 const newBucket = await response.json();
@@ -504,7 +503,7 @@
                     public: newPagePublic,
                     bucket: bucketData.url
                 }
-            const response = await authenticatedPost('http://localhost:8000/api/pages/', body);
+            const response = await authenticatedPost('/api/pages/', body);
 
             if (response.ok) {
                 const newPage = await response.json();

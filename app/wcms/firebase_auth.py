@@ -12,6 +12,7 @@ def initialize_firebase():
     """Initialize Firebase Admin SDK"""
     if not firebase_admin._apps:
         service_account_path = os.environ.get('FIREBASE_PATH')
+        logger.warning(f"FBPath{service_account_path} {os.path.exists(service_account_path)}")
         
         if service_account_path and os.path.exists(service_account_path):
             cred = credentials.Certificate(service_account_path)
@@ -63,17 +64,16 @@ class FirebaseAuthentication(authentication.BaseAuthentication):
             
             # Get or create Django user
             User = get_user_model()
+
             user, created = User.objects.get_or_create(
-                firebase_uid=firebase_uid,
+                username=firebase_uid,
                 defaults={
-                    'username': email or firebase_uid,
                     'email': email,
                     'first_name': name,
                     'is_active': True,
                 }
             )
-            
-            # Update user info if changed (but preserve manual changes)
+
             if not created:
                 updated = False
                 if user.email != email and email:

@@ -17,17 +17,19 @@
             
             // Optionally sync with Django backend to get additional user data
             try {
-                const response = await authenticatedFetch('http://localhost:8000/api/users/me/');
+                const response = await authenticatedFetch('/api/users/me/');
+
                 if (response.ok) {
                     const userData = await response.json();
+                    if (userData.first_name) console.log("Data: " + userData.first_name)
                     // Update with backend data if available
+                    username = userData.email.substring(0, 10) + "..."
                     if (userData.first_name) username = userData.first_name
                     if (userData.pfp) pfp = userData.pfp;
                     if (userData.theme !== undefined) darkmode = userData.theme;
                 }
             } catch (error) {
                 console.log('Could not fetch additional user data from backend:', error);
-                // Continue with Firebase data only
             }
         } else {
             username = 'Login';
