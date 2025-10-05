@@ -8,7 +8,7 @@ const config = {
 	preprocess: vitePreprocess(),
 	kit: {  adapter: adapter({
 			// See below for an explanation of these options
-			config: undefined,
+			config: "/home/mzen/StarCMS/web/",
 			platformProxy: {
 				configPath: undefined,
 				environment: undefined,

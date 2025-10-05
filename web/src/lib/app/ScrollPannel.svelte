@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { authenticatedFetch } from '$lib/auth';
+    import { authenticatedFetch, get_backend_url } from '$lib/auth';
 	import { onMount, tick } from 'svelte';
 
 	// Interfaces remain the same
@@ -27,7 +27,7 @@
 	}
 
 	let bucketList: Bucket[] = [];
-	let nextLink: string | null = 'http://localhost:8000/api/buckets';
+	let nextLink: string | null = get_backend_url() + "/api/buckets";
 	let gridContainer: HTMLDivElement;
 	let isLoading = false;
 	let isInitialLoading = true; // For the initial full-screen loader
