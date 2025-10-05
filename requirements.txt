@@ -4,5 +4,5 @@ django-cors-headers
 django-filter
 faker
 firebase-admin
-gunicorn-23.0.0
+gunicorn
 psycopg2-binary
