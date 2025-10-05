@@ -36,7 +36,8 @@ if (browser) {
   authReady = Promise.resolve();
 }
 
-function get_backend_url() {
+export function get_backend_url() {
+  console.log(import.meta.env.VITE_ENVIRON)
   return import.meta.env.VITE_ENVIRON === 'prod' ? "https://wcms-api.starlitex.com" : "http://localhost:8000";
 }
 
