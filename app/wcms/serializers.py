@@ -17,7 +17,7 @@ class WCMSUserSerializer(serializers.HyperlinkedModelSerializer):
     
     class Meta:
         model = wm.WCMSUser
-        fields = ['url', 'email', 'first_name', 'last_name', 'pfp', 'bio', 'dictionary', 'theme', 'username']
+        fields = ['url', 'email', 'first_name', 'last_name', 'pfp', 'bio', 'dictionary', 'theme', 'username', 'id']
         read_only_fields = ['username', 'email']  # Firebase manages these fields
     
     def create(self, validated_data):

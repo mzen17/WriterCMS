@@ -13,6 +13,7 @@
     bio: string;
     dictionary: string | null;
     theme: boolean;
+    id: number;
   }
 
   let user: User = {
@@ -24,6 +25,7 @@
     bio: '',
     dictionary: null,
     theme: false,
+    id: 1
   };
 
   let error: string | null = null;
@@ -75,7 +77,7 @@
     }
 
     try {
-      const response = await authenticatedPost(user.url, user, 'PUT')
+      const response = await authenticatedPost("/api/users/"+user.id+"/", user, 'PUT')
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

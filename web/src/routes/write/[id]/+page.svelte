@@ -94,7 +94,7 @@
     
 
     // TinyMCE configuration
-    const TINYMCE_URL = 'http://lib.starlitex.com/tinymce/tinymce.min.js';
+    const TINYMCE_URL = 'https://lib.starlitex.com/tinymce/tinymce.min.js';
 
     // Add beforeunload handler function
     function handleBeforeUnload(event: BeforeUnloadEvent) {
