@@ -21,6 +21,16 @@
     let isDirty: boolean = $state(false);
     let editor: any = null;
     
+    // Edit page metadata dialog state variables
+    let showEditPageDialog: boolean = $state(false);
+    let editPageTitle: string = $state('');
+    let editPageOrder: number | null = $state(null);
+    let editPagePublic: boolean = $state(false);
+    let editPageBanner: string = $state('');
+    let editPageBackground: string = $state('');
+    let savingMetadata: boolean = $state(false);
+    let editMetadataError: string = $state('');
+    
     // Get the ID from the route parameters
     let pageID = $derived($page.params.id);
     
@@ -734,25 +744,6 @@
         try {
             const currentContent = editor.getContent({ format: 'raw' });
 
-            // First, update page metadata if it has changed
-            const metadataUpdateData = {
-                title: pageData.title?.trim() || '',
-                public: pageData.public || false,
-                porder: pageData.porder === null || pageData.porder === undefined || String(pageData.porder).trim() === '' ? -1 : pageData.porder,
-                bucket: pageData.bucket
-            };
-
-            const metadataResponse = await authenticatedPost(`/api/pages/${pageID}/`, metadataUpdateData, 'PUT');
-
-            if (!metadataResponse.ok) {
-                const errorData = await metadataResponse.json().catch(() => ({}));
-                console.error('Metadata update failed:', errorData);
-                alert("Failed to update page metadata. Please try again.");
-                return;
-            }
-
-            console.log('Metadata updated successfully');
-
             // Check if content has changed
             const encodedOriginalContent = originalContent.replace(/"/g, '[@@#%]');
             const encodedCurrentContent = currentContent.replace(/"/g, '[@@#%]');
@@ -858,6 +849,82 @@
         }
     }
 
+    // Function to handle edit page metadata dialog opening
+    function openEditPageDialog() {
+        if (pageData) {
+            showEditPageDialog = true;
+            editPageTitle = pageData.title || '';
+            editPageOrder = pageData.porder === null || pageData.porder === undefined ? -1 : pageData.porder;
+            editPagePublic = pageData.public || false;
+            editPageBanner = pageData.banner || '';
+            editPageBackground = pageData.background || '';
+            editMetadataError = '';
+        }
+    }
+
+    // Function to handle edit page metadata dialog closing
+    function closeEditPageDialog() {
+        showEditPageDialog = false;
+        editPageTitle = '';
+        editPageOrder = null;
+        editPagePublic = false;
+        editPageBanner = '';
+        editPageBackground = '';
+        editMetadataError = '';
+        savingMetadata = false;
+    }
+
+    // Function to handle click outside edit dialog
+    function handleDialogClick(event: MouseEvent) {
+        if (event.target === event.currentTarget) {
+            closeEditPageDialog();
+        }
+    }
+
+    // Function to save page metadata and redirect to bucket
+    async function savePageMetadata() {
+        if (!pageData) return;
+        
+        if (!editPageTitle.trim()) {
+            editMetadataError = 'Page title is required';
+            return;
+        }
+        
+        savingMetadata = true;
+        editMetadataError = '';
+
+        try {
+            const metadataUpdateData = {
+                title: editPageTitle.trim(),
+                public: editPagePublic,
+                porder: editPageOrder === null || editPageOrder === undefined || String(editPageOrder).trim() === '' ? -1 : editPageOrder,
+                bucket: pageData.bucket,
+                banner: editPageBanner.trim(),
+                background: editPageBackground.trim()
+            };
+
+            const metadataResponse = await authenticatedPost(`/api/pages/${pageID}/`, metadataUpdateData, 'PUT');
+
+            if (!metadataResponse.ok) {
+                const errorData = await metadataResponse.json().catch(() => ({}));
+                editMetadataError = errorData.detail || errorData.error || `Failed to update page metadata: ${metadataResponse.status}`;
+                console.error('Metadata update failed:', errorData);
+                return;
+            }
+
+            console.log('Metadata updated successfully');
+            closeEditPageDialog();
+            
+            // Redirect back to the bucket
+            window.location.href = `/bucket/${pageData.bucket_slug}`;
+        } catch (err) {
+            editMetadataError = 'Network error while updating page metadata';
+            console.error('Update metadata error:', err);
+        } finally {
+            savingMetadata = false;
+        }
+    }
+
 </script>
 
 <svelte:head>
@@ -887,45 +954,161 @@
         {#if pageData.bucket_bg}
             <div id="bg"
                 class="fixed inset-0 w-full h-full bg-cover bg-center bg-no-repeat z-10"
-                style="background-image: url('{pageData.bucket_bg}')"
+                style="background-image: url('{pageData.background || pageData.bucket_bg}')"
             ></div>
         {/if}
 
         <div class="flex flex-col items-center max-w-6xl mx-auto px-2 sm:px-5 py-5 relative backdrop-blur-sm dark:bg-gray-900 bg-opacity-50 z-10">
             <div class="flex flex-col lg:flex-row items-center w-full max-w-4xl mb-5 gap-3 sm:gap-5">
                 <div class="flex-1 w-full">
-                    <input
-                        type="text"
-                        bind:value={pageData.title}
+                    <h1
                         placeholder="Page title"
                         class="w-full h-10 text-lg px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white focus:border-transparent"
-                        spellcheck="true"
-                    />
+                    >
+                    {pageData.title}
+                    </h1>
                 </div>
                 <div class="flex flex-col sm:flex-row lg:flex-row gap-2 w-full lg:w-auto">
-                    <div class="flex items-center gap-3">
-                        <label for="order" class="dark:text-white font-medium min-w-[50px]">Order</label>
-                        <input
-                            type="number"
-                            id="order"
-                            bind:value={pageData.porder}
-                            class="w-20 px-2 dark:text-white py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <label for="vis" class="font-medium dark:text-white">Public</label>
-                        <input
-                            type="checkbox"
-                            id="vis"
-                            bind:checked={pageData.public}
-                            class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                        />
-                    </div>
+                    <button
+                        type="button"
+                        onclick={openEditPageDialog}
+                        class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+                    >
+                        Settings
+                    </button>
                 </div>
             </div>
 
             <div class="w-full max-w-4xl mb-5">
                 <textarea id="pg_content" class="w-full"></textarea>
+            </div>
+        </div>
+    </div>
+{/if}
+
+<!-- Edit Page Metadata Dialog -->
+{#if showEditPageDialog}
+    <div 
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+        onclick={handleDialogClick}
+    >
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+            <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-white">
+                Page Settings
+            </h2>
+            
+            <!-- Error message -->
+            {#if editMetadataError}
+                <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                    {editMetadataError}
+                </div>
+            {/if}
+            
+            <!-- Title input -->
+            <div class="mb-4">
+                <label for="editPageTitle" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Page Title *
+                </label>
+                <input
+                    id="editPageTitle"
+                    type="text"
+                    bind:value={editPageTitle}
+                    placeholder="Enter page title"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                    disabled={savingMetadata}
+                />
+            </div>
+            
+            <!-- Order input -->
+            <div class="mb-4">
+                <label for="editPageOrder" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Order
+                </label>
+                <input
+                    id="editPageOrder"
+                    type="number"
+                    bind:value={editPageOrder}
+                    placeholder="Enter page order"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                    disabled={savingMetadata}
+                />
+            </div>
+            
+            <!-- Banner URL input -->
+            <div class="mb-4">
+                <label for="editPageBanner" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Banner Image URL
+                </label>
+                <input
+                    id="editPageBanner"
+                    type="url"
+                    bind:value={editPageBanner}
+                    placeholder="Enter banner image URL"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                    disabled={savingMetadata}
+                />
+            </div>
+            
+            <!-- Background URL input -->
+            <div class="mb-4">
+                <label for="editPageBackground" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Background Image URL
+                </label>
+                <input
+                    id="editPageBackground"
+                    type="url"
+                    bind:value={editPageBackground}
+                    placeholder="Enter background image URL"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                    disabled={savingMetadata}
+                />
+            </div>
+            
+            <!-- Public visibility toggle -->
+            <div class="mb-6">
+                <label class="flex items-center space-x-3">
+                    <button
+                        type="button"
+                        onclick={() => editPagePublic = !editPagePublic}
+                        class={`relative inline-flex w-12 h-6 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${editPagePublic ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'} ${savingMetadata ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                        disabled={savingMetadata}
+                    >
+                        <span class={`inline-block w-4 h-4 transform transition-transform bg-white rounded-full shadow-md ${editPagePublic ? 'translate-x-7' : 'translate-x-1'}`}></span>
+                    </button>
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Public page
+                    </span>
+                </label>
+            </div>
+            
+            <!-- Action buttons -->
+            <div class="flex justify-end space-x-3">
+                <button
+                    type="button"
+                    onclick={closeEditPageDialog}
+                    class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md transition-colors"
+                    disabled={savingMetadata}
+                >
+                    Cancel
+                </button>
+                <button
+                    type="button"
+                    onclick={savePageMetadata}
+                    class="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={savingMetadata}
+                >
+                    {#if savingMetadata}
+                        <span class="flex items-center">
+                            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Saving...
+                        </span>
+                    {:else}
+                        Save
+                    {/if}
+                </button>
             </div>
         </div>
     </div>

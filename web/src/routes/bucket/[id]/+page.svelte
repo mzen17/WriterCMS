@@ -20,6 +20,7 @@
     let editBucketName: string = $state('');
     let editBucketDescription: string = $state('');
     let editBucketVisibility: boolean = $state(false);
+    let editBucketPGBanner: string = $state('');
     let editBucketBanner: string = $state('');
     let editBucketBackground: string = $state('');
     let editBucketTags: string[] = $state([]); // Store as array of tag URLs
@@ -270,6 +271,7 @@
         } finally {
             loading = false;
         }
+        console.log(bucketData)
     }
 
     // Function to handle dialogue window opening
@@ -304,6 +306,7 @@
             editBucketName = bucketData.name || '';
             editBucketDescription = bucketData.description || '';
             editBucketVisibility = bucketData.visibility || false;
+            editBucketPGBanner = bucketData.pg_banner || '';
             editBucketBanner = bucketData.banner || '';
             editBucketBackground = bucketData.background || '';
             editBucketTags = bucketData.tags || [];
@@ -334,6 +337,7 @@
         editBucketDescription = '';
         editBucketVisibility = false;
         editBucketBanner = '';
+        editBucketPGBanner = '';
         editBucketBackground = '';
         editBucketTags = [];
         editError = '';
@@ -363,6 +367,7 @@
                     name: editBucketName.trim(),
                     description: editBucketDescription.trim(),
                     visibility: editBucketVisibility,
+                    pg_banner: editBucketPGBanner.trim(),
                     banner: editBucketBanner.trim(),
                     background: editBucketBackground.trim(),
                     tags: editBucketTags
@@ -663,9 +668,13 @@
                         {#each bucketData.pages as page}
                             <a 
                                 href="/page/{page.slug}" 
-                                class="block p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-all group"
+                                class="relative overflow-hidden block p-4 rounded-lg shadow-sm hover:shadow-md border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-all group duration-200"
                             >
-                                <h3 class="text-lg font-medium text-gray-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                <div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 ease-in-out group-hover:scale-110" 
+                                    style="background-image: url('{page.banner || bucketData.pg_banner || 'https://via.placeholder.com/400x200'}')">
+                                </div>
+
+                                <h3 class="relative text-lg font-medium text-gray-800 dark:text-white  transition-colors">
                                     {page.title}
                                 </h3>
                             </a>
@@ -951,6 +960,22 @@
                     disabled={savingBucket || deletingBucket}
                 />
             </div>
+
+                        <!-- Background  PG URL input -->
+            <div class="mb-4">
+                <label for="editBackgroundPGBanner" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Base Page Banner Image URL
+                </label>
+                <input
+                    id="editBackgroundPGBanner"
+                    type="url"
+                    bind:value={editBucketPGBanner}
+                    placeholder="Enter banner pg image URL"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                    disabled={savingBucket || deletingBucket}
+                />
+            </div>
+
             
             <!-- Tags input -->
             <div class="mb-4">

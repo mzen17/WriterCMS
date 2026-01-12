@@ -39,6 +39,8 @@ class Bucket(models.Model):
     banner = models.CharField(max_length=255, blank=True)
     background = models.CharField(max_length=255, blank=True)
 
+    pg_banner = models.CharField(max_length=255, blank=True)
+
     def generate_slug(self):
         """Generate a unique slug based on the name"""
         base_slug = slugify(self.name)
