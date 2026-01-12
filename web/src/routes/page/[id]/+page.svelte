@@ -89,7 +89,7 @@
         {#if pageData.bucket_bg}
             <div id="bg"
                 class="w-full h-full bg-cover bg-center bg-fixed bg-no-repeat"
-                style="background-image: url('{pageData.bucket_bg}')"
+                style="background-image: url('{pageData.background || pageData.bucket_bg}')"
             ></div>
         {/if}
     </div>

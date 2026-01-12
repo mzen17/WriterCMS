@@ -12,6 +12,10 @@ class Page(models.Model):
     porder = models.IntegerField(default=-1)
     public = models.BooleanField(default=False)
 
+    banner = models.CharField(max_length=255, blank=True)
+    background = models.CharField(max_length=255, blank=True)
+
+
     bucket = models.ForeignKey(
         Bucket,
         on_delete=models.CASCADE,

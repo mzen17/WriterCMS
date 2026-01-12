@@ -44,7 +44,7 @@ class PageSummarySerializer(serializers.ModelSerializer):
     """Simplified serializer for pages within a bucket"""
     class Meta:
         model = wm.Page
-        fields = ['slug', 'title']
+        fields = ['slug', 'title', 'banner']
 
 class BucketSerializer(serializers.HyperlinkedModelSerializer):
     # Add custom fields for hydrated data
@@ -83,6 +83,7 @@ class BucketSerializer(serializers.HyperlinkedModelSerializer):
             'tag_names',  # Add hydrated tag names
             'description',
             'banner',
+            'pg_banner',
             'can_edit',
             'slug',
             'background',
@@ -173,6 +174,8 @@ class PageSerializer(serializers.HyperlinkedModelSerializer):
             'porder',
             'public',
             'slug',
+            'background',
+            'banner',
             'bucket',
             'owner'
         ]
@@ -252,6 +255,7 @@ class TagSerializer(serializers.HyperlinkedModelSerializer):
         model = wm.Tag
         fields = [
             'url',
+            'id',
             'tag_name',
             'tag_description',
         ]
