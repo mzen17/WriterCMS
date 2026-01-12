@@ -8,6 +8,7 @@
 		name: string;
 		user_owner: string;
 		user_owner_name: string;
+		slug: string;
 		bucket_owner: string;
 		bucket_owner_name: string;
 		visibility: boolean;
@@ -77,7 +78,7 @@
 		selectedBucket = bucket;
 
 		try {
-			const response = await authenticatedFetch(bucket.url);
+			const response = await authenticatedFetch("/api/buckets/"+bucket.slug);
 			if (!response.ok) {
 				throw new Error(`HTTP error! status: ${response.status}`);
 			}
@@ -136,7 +137,7 @@
 			bind:this={gridContainer}
 			on:scroll={handleScroll}
 		>
-			{#each bucketList as bucket (bucket.url)}
+			{#each bucketList as bucket (bucket.slug)}
 				<div
 					class="rounded-xl overflow-hidden my-4 shadow-lg dark:shadow-gray-800 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:hover:shadow-gray-700 flex flex-col h-64 md:h-96 cursor-pointer"
 					style="background-color: {bucket.background}"
