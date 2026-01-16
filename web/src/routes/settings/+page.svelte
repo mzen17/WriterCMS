@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { authenticatedFetch, authenticatedPost, user as authUser, loading as authLoading } from '$lib/auth';
+  import Assets from '$lib/app/Assets.svelte';
   import { goto } from '$app/navigation';
 
   // Define the User interface based on your provided response structure
@@ -59,6 +60,7 @@
         throw new Error(`HTTP error! status: ${response.  status}`);
       }
       user = await response.json();
+      console.log(user)
     } catch (err: any) {
       error = err.message || 'Failed to load user data';
       console.error('Error loading user data:', err);
@@ -77,6 +79,7 @@
     }
 
     try {
+      console.log("UPDATED")
       const response = await authenticatedPost("/api/users/"+user.id+"/", user, 'PUT')
 
       if (!response.ok) {
@@ -163,13 +166,7 @@
 
       <div>
         <label for="pfp" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Profile Picture URL</label>
-        <input
-          type="text"
-          id="pfp"
-          bind:value={user.pfp}
-          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-          placeholder="Enter image URL"
-        />
+        <Assets bind:value={user.pfp} placeholder="Enter pfp URL" />
       </div>
 
       <div>

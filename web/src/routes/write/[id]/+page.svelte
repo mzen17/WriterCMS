@@ -4,6 +4,7 @@
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
     import { authenticatedFetch, authenticatedPost } from '$lib/auth';
+    import Assets from '$lib/app/Assets.svelte';
 
     // TypeScript declarations for TinyMCE
     declare global {
@@ -237,6 +238,7 @@
                                  Webdings=webdings;\
                                  Wingdings=wingdings,zapf dingbats",
             plugins: 'wordcount code image revisions',
+
             setup: function (editorInstance: any) {
                 editor = editorInstance;
 
@@ -1039,14 +1041,7 @@
                 <label for="editPageBanner" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Banner Image URL
                 </label>
-                <input
-                    id="editPageBanner"
-                    type="url"
-                    bind:value={editPageBanner}
-                    placeholder="Enter banner image URL"
-                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                    disabled={savingMetadata}
-                />
+                <Assets bind:value={editPageBanner} placeholder="Enter  image URL" />
             </div>
             
             <!-- Background URL input -->
@@ -1054,14 +1049,9 @@
                 <label for="editPageBackground" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Background Image URL
                 </label>
-                <input
-                    id="editPageBackground"
-                    type="url"
-                    bind:value={editPageBackground}
-                    placeholder="Enter background image URL"
-                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                    disabled={savingMetadata}
-                />
+                <Assets bind:value={editPageBackground} placeholder="Enter  image URL" />
+
+
             </div>
             
             <!-- Public visibility toggle -->

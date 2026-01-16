@@ -4,12 +4,16 @@ from django.db.models.functions import Length
 from django.conf import settings
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.http import HttpResponseRedirect
+from wcms.serializers.asset import get_creds, retrieve_image
+
 from wcms.firebase_auth import FirebaseAuthentication
 
 from rest_framework import routers, serializers, viewsets, permissions, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.parsers import MultiPartParser, FormParser
 from django_filters.rest_framework import DjangoFilterBackend
 
 import wcms.models as wm
@@ -444,6 +448,10 @@ class AssetViewSet(viewsets.ModelViewSet):
 
     queryset = wm.Asset.objects.all()
     serializer_class = AssetSerializer
+    parser_classes = [MultiPartParser, FormParser]
+    pagination_class = StandardResultsSetPagination
+    lookup_field = 'file_name'
+    lookup_value_regex = '[^/]+'  # Allow dots and other characters in file_name
 
     def get_permissions(self):
         """
@@ -466,24 +474,89 @@ class AssetViewSet(viewsets.ModelViewSet):
         """
         Authenticated users can see assets from pages they can access (owner, reader, or public).
         Unauthenticated users can only see assets from public pages in public buckets.
+        Supports ?owner=<user_id> filter to show only assets owned by a specific user.
         """
         user = self.request.user
+        owner_filter = self.request.query_params.get('owner', None)
+        
         if user.is_authenticated:
+            # If owner filter is applied, filter by owner ID
+            if owner_filter:
+                try:
+                    if owner_filter == "me":
+                        return wm.Asset.objects.filter(
+                        Q(owner=user)
+                    ).distinct()
+
+                    owner_id = int(owner_filter)
+                    return wm.Asset.objects.filter(
+                        Q(owner_id=owner_id, owner=user) |  # Own assets
+                        Q(owner_id=owner_id, can_share=True)  # Shared assets from that owner
+                    ).distinct()
+                except ValueError:
+                    pass  # Invalid owner ID, ignore filter
+            
             return wm.Asset.objects.filter(
-                Q(page__owner=user) |
-                Q(page__readers=user) |
-                Q(page__bucket__readers=user) | # Assets in pages in buckets where user is a reader
-                Q(page__public=True, page__bucket__visibility=True) # Public assets in public pages/buckets
+                Q(owner=user) |
+                Q(can_share=True) # Public assets in public pages/buckets
             ).distinct()
         else:
             # Unauthenticated users can only see assets from public pages in public buckets
+            if owner_filter:
+                try:
+                    owner_id = int(owner_filter)
+                    return wm.Asset.objects.filter(owner_id=owner_id, can_share=True)
+                except ValueError:
+                    pass
             return wm.Asset.objects.filter(
-                page__public=True, 
-                page__bucket__visibility=True
+                can_share=True, 
             ).distinct()
 
     def perform_create(self, serializer):
-        serializer.save(uploaded_by=self.request.user) # Assuming 'uploaded_by' is the FK to WCMSUser on Asset model
+        serializer.save(owner=self.request.user)
+
+    def perform_destroy(self, instance):
+        """Delete the asset and its S3 file"""
+        from wcms.serializers.asset import delete_asset
+        delete_asset(instance)
+
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def get_file_url(request, file_name):
+    """
+    Custom view to get a presigned URL for a file.
+    Checks if file exists and if user has permission to access it.
+    Redirects to the presigned S3 URL.
+    """    
+    # Check if file exists
+    try:
+        asset = wm.Asset.objects.get(file_name=file_name)
+    except wm.Asset.DoesNotExist:
+        return Response(
+            {'error': 'File not found'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
+    # Check permissions: can_share OR owner
+    user = request.user
+    if not asset.can_share:
+        if not user.is_authenticated:
+            return Response(
+                {'error': 'Authentication required to access this file'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        if asset.owner != user:
+            return Response(
+                {'error': 'You do not have permission to access this file'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+    
+    # Generate presigned URL and redirect
+    s3, bucket = get_creds()
+    presigned_url = retrieve_image(s3, bucket, file_name)
+    
+    return HttpResponseRedirect(presigned_url)
 
 
 router = routers.DefaultRouter()

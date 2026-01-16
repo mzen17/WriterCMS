@@ -50,6 +50,11 @@
     let { children } = $props();
 </script>
 
+<svelte:head>
+        <title>WCMS</title>
+</svelte:head>
+
+
 <Navbar username={username} auth={auth} pfp={pfp}/>
 <div class="pt-16 flex justify-center items-center min-h-screen p-4 bg-white dark:bg-gray-900">
 {@render children()}
