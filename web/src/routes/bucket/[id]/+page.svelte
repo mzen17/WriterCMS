@@ -549,6 +549,13 @@
     });
 </script>
 
+<svelte:head>
+    {#if bucketData}
+        <title>{bucketData.name}</title>
+    {/if}
+</svelte:head>
+
+
 <!-- Loading state -->
 {#if loading}
     <div class="flex justify-center items-center min-h-screen">
