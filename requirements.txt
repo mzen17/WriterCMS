@@ -6,3 +6,4 @@ faker
 firebase-admin
 gunicorn
 psycopg2-binary
+boto3

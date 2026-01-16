@@ -52,6 +52,10 @@
                             <a href="/settings" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark: dark:text-white dark:hover:bg-gray-800">
                                 Settings
                             </a>
+                            <a href="/assets" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark: dark:text-white dark:hover:bg-gray-800">
+                                My Assets
+                            </a>
+
                             <button 
                                 on:click={handleLogout}
                                 class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-800 hover:text-white transition-colors dark:text-white"

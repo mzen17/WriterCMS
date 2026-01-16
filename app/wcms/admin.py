@@ -77,6 +77,6 @@ class CommentAdmin(admin.ModelAdmin):
 
 @admin.register(Asset)
 class AssetAdmin(admin.ModelAdmin):
-    list_display = ['file_name', 'size', 'page']
-    list_filter = ['page']
+    list_display = ['file_name', 'size', 'owner']
+    list_filter = ['owner']
     search_fields = ['file_name']

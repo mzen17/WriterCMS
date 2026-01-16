@@ -2,7 +2,8 @@
     import { onMount } from 'svelte';
     import { page } from '$app/stores';
     import { authenticatedFetch, authenticatedPost } from '$lib/auth';
-    
+    import Assets from '$lib/app/Assets.svelte';
+
     // Reactive state variables for bucket data
     let bucketData: any = $state(null);
     let loading: boolean = $state(true);
@@ -943,44 +944,21 @@
                 <label for="editBucketBanner" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Banner Image URL
                 </label>
-                <input
-                    id="editBucketBanner"
-                    type="url"
-                    bind:value={editBucketBanner}
-                    placeholder="Enter banner image URL"
-                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                    disabled={savingBucket || deletingBucket}
-                />
+                <Assets bind:value={editBucketBanner} placeholder="Enter banner image URL" />
             </div>
-            
-            <!-- Background URL input -->
-            <div class="mb-4">
-                <label for="editBucketBackground" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Background Image URL
                 </label>
-                <input
-                    id="editBucketBackground"
-                    type="url"
-                    bind:value={editBucketBackground}
-                    placeholder="Enter background image URL"
-                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                    disabled={savingBucket || deletingBucket}
-                />
-            </div>
+
+            <!-- Background URL input -->
+             <Assets bind:value={editBucketBackground} placeholder="Enter bucket background image URL" />
 
                         <!-- Background  PG URL input -->
-            <div class="mb-4">
+            <div class="mb-4 mt-4">
                 <label for="editBackgroundPGBanner" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Base Page Banner Image URL
                 </label>
-                <input
-                    id="editBackgroundPGBanner"
-                    type="url"
-                    bind:value={editBucketPGBanner}
-                    placeholder="Enter banner pg image URL"
-                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                    disabled={savingBucket || deletingBucket}
-                />
+                <Assets bind:value={editBucketPGBanner} placeholder="Enter  image URL" />
             </div>
 
             
